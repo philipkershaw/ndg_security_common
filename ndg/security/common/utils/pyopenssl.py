@@ -9,14 +9,22 @@ __license__ = "BSD - see LICENSE file in top-level directory"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
 import logging
-log = logging.getLogger(__name__)'''
+log = logging.getLogger(__name__)
+
+from datetime import datetime
 import socket
 
 from cStringIO import StringIO
-from httplib import HTTPSocket, HTTPS_PORT 
+from httplib import HTTPConnection, HTTPS_PORT 
+from urllib import addinfourl
+from urllib2 import (OpenerDirector, AbstractHTTPHandler, URLError,
+                     ProxyHandler, UnknownHandler, HTTPHandler,
+                     HTTPDefaultErrorHandler, HTTPRedirectHandler,
+                     FTPHandler, FileHandler, HTTPErrorProcessor)
+
 from OpenSSL import SSL
 
-        
+
 class Socket(object):
     """SSL Socket class wraps pyOpenSSL's SSL.Connection class implementing
     the makefile method so that it is compatible with the standard socket
@@ -27,7 +35,7 @@ class Socket(object):
     makefile method
     @type default_buf_size: int
     """
-    default_buf_size = 4096
+    default_buf_size = 8192
     
     def __init__(self, ctx, sock=None):
         """Create SSL socket object
@@ -164,7 +172,7 @@ class Socket(object):
     def sendall(self, data):
         self.__ssl_conn.sendall(data)
         
-    def recv(self, size=def_buf_size):
+    def recv(self, size=default_buf_size):
         """Receive data from the Connection. 
         
         @param size: The maximum amount of data to be received at once
@@ -208,7 +216,7 @@ class Socket(object):
 
     def makefile(self, *args):
         """Specific to Python socket API and required by httplib: convert
-        response into a file like object.  This implementation reads using recv
+        response into a file-like object.  This implementation reads using recv
         and copies the output into a StringIO buffer to simulate a file object
         for consumption by httplib
         
@@ -220,21 +228,30 @@ class Socket(object):
         @return: file object for data returned from socket
         @rtype: cStringIO.StringO
         """
+        # Optimisation
+        _buf_size = self.buf_size
         
+        i=0
         stream = StringIO()
+        startTime = datetime.utcnow()
         try:
-            dat = self.__ssl_conn.recv(self.buf_size)
+            dat = self.__ssl_conn.recv(_buf_size)
             while dat:
+                i+=1
                 stream.write(dat)
-                dat = self.__ssl_conn.recv(self.buf_size)
+                dat = self.__ssl_conn.recv(_buf_size)
                 
-        except Exception, SSL.ZeroReturnError:
+        except SSL.ZeroReturnError:
             # Connection is closed - assuming here that all is well and full
             # response has been received.  httplib will catch an error in
             # incomplete content since it checks the content-length header 
             # against the actual length of data received 
             pass
-            
+        
+        if log.getEffectiveLevel() <= logging.DEBUG:
+            log.debug("Socket.makefile %d recv calls completed in %s", i, 
+                      datetime.utcnow() - startTime)
+
         # Make sure to rewind the buffer otherwise consumers of the content will
         # read from the end of the buffer
         stream.seek(0)
@@ -243,7 +260,7 @@ class Socket(object):
 
     def getsockname(self):
         """
-        @return: the socket’s own address
+        @return: the socket's own address
         @rtype:
         """
         return self.__ssl_conn.getsockname()
@@ -253,7 +270,15 @@ class Socket(object):
         @return: remote address to which the socket is connected
         """
         return self.__ssl_conn.getpeername()
-        
+    
+    def get_context(self):
+        '''Retrieve the Context object associated with this Connection. '''
+        return self.__ssl_conn.get_context()
+    
+    def get_peer_certificate(self):
+        '''Retrieve the other side's certificate (if any)  '''       
+        return self.__ssl_conn.get_peer_certificate()
+    
 
 class HTTPSConnection(HTTPConnection):
     """This class allows communication via SSL using PyOpenSSL.
@@ -298,11 +323,138 @@ class HTTPSConnection(HTTPConnection):
         self.sock.close()
         
         
+class HTTPSHandler(AbstractHTTPHandler):
+    """PyOpenSSL based HTTPS Handler class to fit urllib2's handler interface"""
+    
+    def __init__(self, ssl_context=None):
+        """@param ssl_context: SSL context
+        @type ssl_context: OpenSSL.SSL.Context
+        """
+        AbstractHTTPHandler.__init__(self)
+
+        if ssl_context is not None:
+            if not isinstance(ssl_context, SSL.Context):
+                raise TypeError('Expecting OpenSSL.SSL.Context type for "'
+                                'ssl_context" keyword; got %r instead' %
+                                ssl_context)
+            self.ctx = ssl_context
+        else:
+            self.ctx = SSL.Context(SSL.SSLv23_METHOD)
+
+    def https_open(self, req):
+        """Return an addinfourl object for the request, using http_class.
+
+        http_class must implement the HTTPConnection API from httplib.
+        The addinfourl return value is a file-like object.  It also
+        has methods and attributes including:
+            - info(): return a mimetools.Message object for the headers
+            - geturl(): return the original request URL
+            - code: HTTP status code
+        """
+        host = req.get_host()
+        if not host:
+            raise URLError('no host given')
+
+        # TODO: Add HTTPS Proxy support here
+        h = HTTPSConnection(host=host, ssl_context=self.ctx)
+        h.set_debuglevel(self._debuglevel)
+
+        headers = dict(req.headers)
+        headers.update(req.unredirected_hdrs)
+        
+        # We want to make an HTTP/1.1 request, but the addinfourl
+        # class isn't prepared to deal with a persistent connection.
+        # It will try to read all remaining data from the socket,
+        # which will block while the server waits for the next request.
+        # So make sure the connection gets closed after the (only)
+        # request.
+        headers["Connection"] = "close"
+        try:
+            h.request(req.get_method(), req.get_selector(), req.data, headers)
+            r = h.getresponse()
+        except socket.error, err: # XXX what error?
+            raise URLError(err)
+
+        # Pick apart the HTTPResponse object to get the addinfourl
+        # object initialized properly.
+
+        # Wrap the HTTPResponse object in socket's file object adapter
+        # for Windows.  That adapter calls recv(), so delegate recv()
+        # to read().  This weird wrapping allows the returned object to
+        # have readline() and readlines() methods.
+
+        # XXX It might be better to extract the read buffering code
+        # out of socket._fileobject() and into a base class.
+
+        r.recv = r.read
+        fp = socket._fileobject(r, close=True)
+
+        resp = addinfourl(fp, r.msg, req.get_full_url())
+        resp.code = r.status
+        resp.msg = r.reason
+        return resp
+
+    https_request = AbstractHTTPHandler.do_request_
+
+
+# Copied from urllib2 with modifications for ssl
+def urllib2_build_opener(ssl_context=None, *handlers):
+    """Create an opener object from a list of handlers.
+
+    The opener will use several default handlers, including support
+    for HTTP and FTP.
+
+    If any of the handlers passed as arguments are subclasses of the
+    default handlers, the default handlers will not be used.
+    """
+    import types
+    def isclass(obj):
+        return isinstance(obj, types.ClassType) or hasattr(obj, "__bases__")
+
+    opener = OpenerDirector()
+    default_classes = [ProxyHandler, UnknownHandler, HTTPHandler,
+                       HTTPDefaultErrorHandler, HTTPRedirectHandler,
+                       FTPHandler, FileHandler, HTTPErrorProcessor]
+    skip = []
+    for klass in default_classes:
+        for check in handlers:
+            if isclass(check):
+                if issubclass(check, klass):
+                    skip.append(klass)
+            elif isinstance(check, klass):
+                skip.append(klass)
+    for klass in skip:
+        default_classes.remove(klass)
+
+    for klass in default_classes:
+        opener.add_handler(klass())
+
+    # Add the HTTPS handler with ssl_context
+    if HTTPSHandler not in skip:
+        opener.add_handler(HTTPSHandler(ssl_context))
+
+    for h in handlers:
+        if isclass(h):
+            h = h()
+        opener.add_handler(h)
+        
+    return opener
+       
+       
 if __name__ == "__main__":
-    httpsConn = HTTPSSocket('localhost', port=443)
-    httpsConn.connect()
-    httpsConn.putrequest('GET', '/verify')
-    httpsConn.endheaders()
-    resp = httpsConn.getresponse()
-    httpsConn.close()
-    print resp.read()
+    logging.basicConfig(level=logging.DEBUG)
+#    httpsConn = HTTPSConnection('localhost', port=443)
+#    httpsConn.connect()
+#    httpsConn.putrequest('GET', '/OpenID/Provider/home')
+#    httpsConn.endheaders()
+#    resp = httpsConn.getresponse()
+#    httpsConn.close()
+#    print resp.read()
+    cert = None
+    ctx = SSL.Context()
+    ctx.use_certificate(cert)
+    ctx.add_extra_chain_cert(cert)
+    opener = urllib2_build_opener()
+    resp2 = opener.open('https://localhost/OpenID/Provider/home')
+    print "_"*80
+    print resp2.read()

@@ -179,7 +179,7 @@ class CredentialWalletBase(object):
 
     @abstractmethod
     def addCredentials(self, key, credentials):
-        """Add a new attribute certificate to the list of credentials held.
+        """Add a new credential to the list of credentials held.
 
         @type key: basestring
         @param key: key to use to retrieve the credential
@@ -212,7 +212,7 @@ class CredentialWalletBase(object):
         
         @rtype: list
         @return: cached credentials indexed by key"""
-        return self.__credentials.get(issuer)
+        return self.__credentials.get(key)
         
     def _getUserId(self):
         return self.__userId
