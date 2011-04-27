@@ -241,7 +241,7 @@ class Socket(object):
                 stream.write(dat)
                 dat = self.__ssl_conn.recv(_buf_size)
                 
-        except SSL.ZeroReturnError:
+        except (SSL.ZeroReturnError, SSL.SysCallError):
             # Connection is closed - assuming here that all is well and full
             # response has been received.  httplib will catch an error in
             # incomplete content since it checks the content-length header 
@@ -439,22 +439,3 @@ def urllib2_build_opener(ssl_context=None, *handlers):
         opener.add_handler(h)
         
     return opener
-       
-       
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-#    httpsConn = HTTPSConnection('localhost', port=443)
-#    httpsConn.connect()
-#    httpsConn.putrequest('GET', '/OpenID/Provider/home')
-#    httpsConn.endheaders()
-#    resp = httpsConn.getresponse()
-#    httpsConn.close()
-#    print resp.read()
-    cert = None
-    ctx = SSL.Context()
-    ctx.use_certificate(cert)
-    ctx.add_extra_chain_cert(cert)
-    opener = urllib2_build_opener()
-    resp2 = opener.open('https://localhost/OpenID/Provider/home')
-    print "_"*80
-    print resp2.read()
