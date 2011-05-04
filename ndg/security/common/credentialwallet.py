@@ -266,9 +266,14 @@ class SAMLAssertionWallet(CredentialWalletBase):
             
         elif isinstance(value, basestring):
             self.__clockSkewTolerance = timedelta(seconds=float(value))
+            
+        elif isinstance(value, timedelta):
+            self.__clockSkewTolerance = value
+            
         else:
-            raise TypeError('Expecting float, int, long or string type for '
-                            '"clockSkewTolerance"; got %r' % type(value))
+            raise TypeError('Expecting timedelta, float, int, long or string '
+                            'type for "clockSkewTolerance"; got %r' % 
+                            type(value))
 
     clockSkewTolerance = property(_getClockSkewTolerance, 
                                   _setClockSkewTolerance, 
