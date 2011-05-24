@@ -57,7 +57,7 @@ need to modify application code.
 
 setup(
     name =           		'ndg_security_common',
-    version =        		'2.2.1',
+    version =        		'2.2.2',
     description =           'NERC DataGrid Security package containing common '
                             'utilities used by both server and client '
                             'packages',
