@@ -75,7 +75,12 @@ class Socket(object):
     def close(self):
         """Shutdown the SSL connection and call the close method of the 
         underlying socket"""
-        self.__ssl_conn.shutdown()
+        try:
+            self.__ssl_conn.shutdown()
+        except SSL.Error, e:
+            # Make errors on shutdown non-fatal
+            log.warning('Connection shutdown failed: %r', e)
+            
         self.__ssl_conn.close()
 
     def set_shutdown(self, mode):
