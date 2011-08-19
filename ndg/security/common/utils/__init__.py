@@ -9,6 +9,7 @@ __license__ = "BSD - see LICENSE file in top-level directory"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
 import UserDict
+from urlparse import urlparse, urlunparse, urljoin, ParseResult
 
 # Interpret a string as a boolean
 str2Bool = lambda str: str.lower() in ("yes", "true", "t", "1")
@@ -207,3 +208,99 @@ class VettedDict(UserDict.DictMixin):
     
     def __contains__(self, val):
         return self.__map.__contains__(val)
+    
+
+
+
+class FakeUrllib2HTTPRequest(object):
+    """Substitute for urllib2 HTTP request to enable use of cookielib with 
+    httplib. Adapted from:
+    
+    http://stackoverflow.com/questions/1016765/how-to-use-cookielib-with-httplib-in-python
+    """
+
+    def __init__(self, uri, headers={}):
+        '''@param uri: URI for request
+        @type uri: string or ParseResult
+        @param headers: HTTP header fields 
+        @type headers: dict
+        '''
+        if isinstance(uri, basestring):
+            self._parsed_uri = urlparse(uri)
+            
+        elif isinstance(uri, ParseResult):
+            self._parsed_uri = uri
+        else:
+            raise TypeError('Expecting string or ParseResult type for input '
+                            'uri; got %r' % type(uri))
+        
+        self._headers = {}
+        for key, value in headers.items():
+            self.add_header(key, value)
+
+    def has_header(self, name):
+        '''@param name: header field name to check
+        @type name: basestring
+        @return: True if field name is in HTTP header
+        @rtype: bool
+        '''
+        return name in self._headers
+
+    def add_header(self, key, val):
+        '''@param key: field name to add
+        @type key: basestring
+        @param val: field value to add
+        @type val: basestring
+        '''
+        self._headers[key.capitalize()] = val
+
+    def add_unredirected_header(self, key, val):
+        '''Add header item capitalising the field name
+        @param key: field name to add
+        @type key: basestring
+        @param val: field value to add
+        @type val: basestring
+        '''
+        self._headers[key.capitalize()] = val
+
+    def is_unverifiable(self):
+        '''@return: true
+        @rtype: bool
+        '''
+        return True
+
+    def get_type(self):
+        '''@return: protocol scheme e.g. http
+        @rtype: basestring
+        '''
+        return self._parsed_uri.scheme
+
+    def get_full_url(self):
+        '''@return: complete URL for the request
+        @rtype: basestring
+        '''
+        return urlunparse(self._parsed_uri)
+
+    def get_header(self, header_name, default=None):
+        '''@param header_name: field name of header item to return
+        @type header_name: basestring
+        @param default: default value to set if header name not in headers
+        @type default: any
+        @return: value for given header field name
+        @rtype: basestring or type determined by default
+        '''
+        return self._headers.get(header_name, default)
+
+    def get_host(self):
+        '''@return: host name
+        @rtype: basestring
+        '''
+        return self._parsed_uri.scheme.split(':', 1)[0]
+
+    get_origin_req_host = get_host
+
+    def get_headers(self):
+        '''@return: header items
+        @rtype: dict
+        '''
+        return self._headers
