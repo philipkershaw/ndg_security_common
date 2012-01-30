@@ -20,6 +20,7 @@ __all__ = [
     'AttCert',
     'saml_utils',
     'soap',
+    'config',
     'credentialwallet',
     'openssl',
     'sessionmanager',

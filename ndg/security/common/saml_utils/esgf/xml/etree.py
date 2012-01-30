@@ -11,13 +11,15 @@ __revision__ = '$Id$'
 import logging
 log = logging.getLogger(__name__)
 
-from xml.etree import ElementTree
+from ndg.security.common.config import Config, importElementTree
+ElementTree = importElementTree()
 
 from ndg.saml.xml import XMLTypeParseError, UnknownAttrProfile
 from ndg.saml.xml.etree import (AttributeValueElementTreeBase, 
                                 ResponseElementTree,
                                 QName)
 
+import ndg.security.common.utils.etree as etree
 from ndg.security.common.saml_utils.esgf import ESGFGroupRoleAttributeValue
 
 
@@ -43,13 +45,14 @@ class ESGFGroupRoleAttributeValueElementTree(AttributeValueElementTreeBase,
             raise TypeError("Expecting %r type; got: %r" % 
                             (ESGFGroupRoleAttributeValue, type(attributeValue)))
             
-        ElementTree._namespace_map[attributeValue.namespaceURI
-                                   ] = attributeValue.namespacePrefix
+        if not Config.use_lxml:
+            ElementTree._namespace_map[attributeValue.namespaceURI
+                                       ] = attributeValue.namespacePrefix
                                    
         tag = str(QName.fromGeneric(cls.TYPE_NAME))    
-        groupRoleElem = ElementTree.Element(tag)
-        ElementTree._namespace_map[cls.DEFAULT_ELEMENT_NAME.namespaceURI
-                                   ] = cls.DEFAULT_ELEMENT_NAME.prefix 
+        groupRoleElem = etree.makeEtreeElement(tag,
+                                        cls.DEFAULT_ELEMENT_NAME.prefix,
+                                        cls.DEFAULT_ELEMENT_NAME.namespaceURI)
         
         groupRoleElem.set(cls.GROUP_ATTRIB_NAME, attributeValue.group)
         groupRoleElem.set(cls.ROLE_ATTRIB_NAME, attributeValue.role)
@@ -70,7 +73,8 @@ class ESGFGroupRoleAttributeValueElementTree(AttributeValueElementTreeBase,
         """
         
         # Update namespace map for the Group/Role type referenced.  
-        ElementTree._namespace_map[cls.DEFAULT_NS] = cls.DEFAULT_PREFIX
+        if not Config.use_lxml:
+            ElementTree._namespace_map[cls.DEFAULT_NS] = cls.DEFAULT_PREFIX
         
         if not ElementTree.iselement(elem):
             raise TypeError("Expecting %r input type for parsing; got %r" %

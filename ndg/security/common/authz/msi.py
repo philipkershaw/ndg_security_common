@@ -15,7 +15,9 @@ log = logging.getLogger(__name__)
 
 import traceback
 import warnings
-from xml.etree import ElementTree
+
+from ndg.security.common.config import importElementTree
+ElementTree = importElementTree()
 
 from ndg.security.common.utils import TypedList
 from ndg.security.common.utils.etree import QName
