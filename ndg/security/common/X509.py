@@ -860,7 +860,7 @@ class X500DN(dict):
         if separator:
             if not isinstance(separator, basestring):
                 raise X500DNError("Separator must be a valid string")
-		
+
             self.__separator = separator
             
         else:

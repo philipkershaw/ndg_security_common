@@ -12,10 +12,12 @@ __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
 
 # Bootstrap setuptools if necessary.
-from ez_setup import use_setuptools
-use_setuptools()
-
-from setuptools import setup, find_packages
+try:
+    from setuptools import setup, find_packages
+except ImportError:
+    from ez_setup import use_setuptools
+    use_setuptools()
+    from setuptools import setup, find_packages
 
 import sys
 
@@ -57,7 +59,7 @@ need to modify application code.
 
 setup(
     name =           		'ndg_security_common',
-    version =        		'2.2.2',
+    version =        		'2.3.0',
     description =           'NERC DataGrid Security package containing common '
                             'utilities used by both server and client '
                             'packages',
