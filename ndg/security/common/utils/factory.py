@@ -134,11 +134,11 @@ def callModuleObject(moduleName, objectName=None, moduleFilePath=None,
     log.debug('Instantiating object "%s"', importedObject.__name__)
     try:
         if objectArgs:
-            object = importedObject(*objectArgs, **objectProperties)
+            obj = importedObject(*objectArgs, **objectProperties)
         else:
-            object = importedObject(**objectProperties)
+            obj = importedObject(**objectProperties)
             
-        return object
+        return obj
 
     except Exception, e:
         log.error("Instantiating module object, %r: %r" % 
