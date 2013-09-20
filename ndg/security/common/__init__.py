@@ -10,23 +10,3 @@ __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __license__ = "BSD - see LICENSE file in top-level directory"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = "$Id$"
-
-# Enable from ndg.security.common import * for client and server modules.
-# Leave out sqlobject because it's an optional module and requires 
-# installation of sqlobject
-__all__ = [
-    'authz',
-    'attributeauthority',
-    'AttCert',
-    'saml_utils',
-    'soap',
-    'config',
-    'credentialwallet',
-    'openssl',
-    'sessionmanager',
-    'utils',
-    'wssecurity',
-    'X509',
-    'XMLSec',
-    'zsi'
-    ]

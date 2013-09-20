@@ -10,7 +10,7 @@ __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
 from os import path, environ
 
-from ndg.security.test.unit import BaseTestCase
+from ndg.security.test.unit.base import BaseTestCase
 from ndg.security.common.X509 import X509Cert
 from ndg.security.common.utils.configfileparsers import (
     CaseSensitiveConfigParser)

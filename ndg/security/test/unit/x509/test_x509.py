@@ -25,7 +25,7 @@ mkPath = lambda file: jnPath(os.environ['NDGSEC_X509_UNITTEST_DIR'], file)
 
 from ConfigParser import SafeConfigParser
 
-from ndg.security.test.unit import BaseTestCase
+from ndg.security.test.unit.base import BaseTestCase
 from ndg.security.common.X509 import (X509CertRead, X509CertParse, X500DN, 
     X509Stack, X509StackEmptyError, SelfSignedCert, X509CertIssuerNotFound)
 

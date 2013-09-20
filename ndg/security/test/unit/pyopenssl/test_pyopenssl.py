@@ -14,7 +14,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 from OpenSSL import SSL
 from webob import Response, dec
-from ndg.security.test.unit import BaseTestCase
+from ndg.security.test.unit.base import BaseTestCase
 from ndg.security.common.utils.pyopenssl import (HTTPSConnection, 
                                                  urllib2_build_opener)
 
