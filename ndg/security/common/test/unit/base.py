@@ -11,7 +11,6 @@ __revision__ = '$Id$'
 
 import unittest
 import logging
-import socket
 
 logging.basicConfig()
 log = logging.getLogger(__name__)
@@ -30,18 +29,7 @@ TEST_CONFIG_DIR = join(abspath(dirname(dirname(__file__))), 'config')
 
 mkDataDirPath = lambda file_:join(TEST_CONFIG_DIR, file_)
 
-from ndg.security.server.utils.paste_utils import PasteDeployAppServer
 from ndg.security.common.saml_utils.esgf import ESGFGroupRoleAttributeValue
-
-try:
-    from sqlalchemy import (create_engine, MetaData, Table, Column, Integer, 
-                            String)
-    from sqlalchemy.ext.declarative import declarative_base
-    from sqlalchemy.orm import sessionmaker
-    
-    sqlAlchemyInstalled = True
-except ImportError:
-    sqlAlchemyInstalled = False
     
     
 class BaseTestCase(unittest.TestCase):

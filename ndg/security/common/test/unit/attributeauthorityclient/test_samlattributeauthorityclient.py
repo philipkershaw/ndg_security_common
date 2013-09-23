@@ -25,8 +25,7 @@ from ndg.saml.common import SAMLVersion
 from ndg.saml.common.xml import SAMLConstants
 from ndg.saml.xml.etree import AttributeQueryElementTree, ResponseElementTree
 from ndg.saml.saml2.core import (Subject, Issuer, Attribute, NameID, 
-                                 AttributeQuery, StatusCode, 
-                                 XSStringAttributeValue)
+                                 AttributeQuery, XSStringAttributeValue)
 
 from ndg.saml.saml2.binding.soap.client import SOAPBinding
 from ndg.saml.saml2.binding.soap.client.attributequery import (
@@ -35,9 +34,6 @@ from ndg.saml.saml2.binding.soap.client.attributequery import (
 from ndg.security.common.saml_utils.esgf import (ESGFSamlNamespaces,
                                                  ESGFDefaultQueryAttributes,
                                                  ESGFGroupRoleAttributeValue)
-from ndg.security.common.saml_utils.esgf.xml.etree import \
-                                        ESGFResponseElementTree
-from ndg.security.common.utils.etree import prettyPrint
 from ndg.security.common.test.unit.base import BaseTestCase
 from ndg.security.common.utils.configfileparsers import (
     CaseSensitiveConfigParser)
@@ -81,26 +77,27 @@ class AttributeAuthoritySAMLInterfaceTestCase(BaseTestCase):
                         
         attributeQuery.subject = Subject()
         attributeQuery.subject.nameID = NameID()
-        attributeQuery.subject.nameID.format = ESGFSamlNamespaces.NAMEID_FORMAT
+        attributeQuery.subject.nameID.format = \
+            ESGFSamlNamespaces.NAMEID_FORMAT #@UndefinedVariable
         attributeQuery.subject.nameID.value = _cfg['subject']
         xsStringNs = SAMLConstants.XSD_NS+"#"+\
                                         XSStringAttributeValue.TYPE_LOCAL_NAME
         fnAttribute = Attribute()
-        fnAttribute.name = ESGFSamlNamespaces.FIRSTNAME_ATTRNAME
+        fnAttribute.name = ESGFSamlNamespaces.FIRSTNAME_ATTRNAME #@UndefinedVariable
         fnAttribute.nameFormat = xsStringNs
         fnAttribute.friendlyName = "FirstName"
 
         attributeQuery.attributes.append(fnAttribute)
     
         lnAttribute = Attribute()
-        lnAttribute.name = ESGFSamlNamespaces.LASTNAME_ATTRNAME
+        lnAttribute.name = ESGFSamlNamespaces.LASTNAME_ATTRNAME #@UndefinedVariable
         lnAttribute.nameFormat = xsStringNs
         lnAttribute.friendlyName = "LastName"
 
         attributeQuery.attributes.append(lnAttribute)
     
         emailAddressAttribute = Attribute()
-        emailAddressAttribute.name = ESGFSamlNamespaces.EMAILADDRESS_ATTRNAME
+        emailAddressAttribute.name = ESGFSamlNamespaces.EMAILADDRESS_ATTRNAME #@UndefinedVariable
         emailAddressAttribute.nameFormat = xsStringNs
         emailAddressAttribute.friendlyName = "emailAddress"
         
@@ -132,7 +129,8 @@ class AttributeAuthoritySAMLInterfaceTestCase(BaseTestCase):
                         
         attributeQuery.subject = Subject()  
         attributeQuery.subject.nameID = NameID()
-        attributeQuery.subject.nameID.format = ESGFSamlNamespaces.NAMEID_FORMAT
+        attributeQuery.subject.nameID.format = \
+            ESGFSamlNamespaces.NAMEID_FORMAT #@UndefinedVariable
         attributeQuery.subject.nameID.value = _cfg['subject']
         xsStringNs = SAMLConstants.XSD_NS+"#"+\
                                         XSStringAttributeValue.TYPE_LOCAL_NAME
@@ -163,7 +161,8 @@ class AttributeAuthoritySAMLInterfaceTestCase(BaseTestCase):
                         
         attributeQuery.subject = Subject()  
         attributeQuery.subject.nameID = NameID()
-        attributeQuery.subject.nameID.format = ESGFSamlNamespaces.NAMEID_FORMAT
+        attributeQuery.subject.nameID.format = \
+            ESGFSamlNamespaces.NAMEID_FORMAT #@UndefinedVariable
         attributeQuery.subject.nameID.value = _cfg['subject']
         xsStringNs = SAMLConstants.XSD_NS+"#"+\
                                         XSStringAttributeValue.TYPE_LOCAL_NAME
@@ -195,7 +194,8 @@ class AttributeAuthoritySAMLInterfaceTestCase(BaseTestCase):
                         
         attributeQuery.subject = Subject()  
         attributeQuery.subject.nameID = NameID()
-        attributeQuery.subject.nameID.format = ESGFSamlNamespaces.NAMEID_FORMAT
+        attributeQuery.subject.nameID.format = \
+            ESGFSamlNamespaces.NAMEID_FORMAT #@UndefinedVariable
         attributeQuery.subject.nameID.value = _cfg['subject']
         xsStringNs = SAMLConstants.XSD_NS+"#"+\
                                         XSStringAttributeValue.TYPE_LOCAL_NAME
@@ -229,7 +229,8 @@ class AttributeAuthoritySAMLInterfaceTestCase(BaseTestCase):
                         
         attributeQuery.subject = Subject()  
         attributeQuery.subject.nameID = NameID()
-        attributeQuery.subject.nameID.format = ESGFSamlNamespaces.NAMEID_FORMAT
+        attributeQuery.subject.nameID.format = \
+            ESGFSamlNamespaces.NAMEID_FORMAT #@UndefinedVariable
         attributeQuery.subject.nameID.value = _cfg['subject']
         
         groupRoleAttribute = Attribute()
@@ -251,7 +252,8 @@ class AttributeAuthoritySAMLInterfaceTestCase(BaseTestCase):
         
         binding = AttributeQuerySOAPBinding()
         
-        binding.subjectIdFormat = ESGFSamlNamespaces.NAMEID_FORMAT
+        binding.subjectIdFormat = \
+            ESGFSamlNamespaces.NAMEID_FORMAT #@UndefinedVariable
         binding.issuerName = \
             str(AttributeAuthoritySAMLInterfaceTestCase.VALID_REQUESTOR_IDS[0])
         binding.issuerFormat = Issuer.X509_SUBJECT

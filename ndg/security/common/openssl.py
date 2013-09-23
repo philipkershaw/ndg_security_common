@@ -175,16 +175,16 @@ class OpenSSLConfig(SafeConfigParser, object):
         
         Reformat _sections to """
         try:
-            file = open(self.__filePath)
-            fileTxt = file.read()
+            file_ = open(self.__filePath)
+            fileTxt = file_.read()
         except Exception, e:
             raise OpenSSLConfigError, \
                 "Error reading OpenSSL config file \"%s\": %s" % \
                                                     (self.__filePath, str(e))
 
         idx = re.search('\[\s*\w*\s*\]', fileTxt).span()[0]
-        file.seek(idx)
-        SafeConfigParser.readfp(self, file)
+        file_.seek(idx)
+        SafeConfigParser.readfp(self, file_)
         
         # Filter section names and reomve comments from options
         for section, val in self._sections.items():
