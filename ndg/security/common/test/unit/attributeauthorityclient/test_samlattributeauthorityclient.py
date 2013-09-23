@@ -12,9 +12,11 @@ __revision__ = '$Id$'
 import logging
 logging.basicConfig(level=logging.DEBUG)
 import os
+from os import path, environ
 from datetime import datetime
 import unittest
 from uuid import uuid4
+from urllib2 import URLError
 
 from ndg.security.common.config import importElementTree
 ElementTree = importElementTree()
@@ -36,13 +38,14 @@ from ndg.security.common.saml_utils.esgf import (ESGFSamlNamespaces,
 from ndg.security.common.saml_utils.esgf.xml.etree import \
                                         ESGFResponseElementTree
 from ndg.security.common.utils.etree import prettyPrint
-from ndg.security.test.unit.attributeauthorityclient import \
-                                        AttributeAuthorityClientBaseTestCase
-   
-   
-class AttributeAuthoritySAMLInterfaceTestCase(
-                                        AttributeAuthorityClientBaseTestCase):
+from ndg.security.common.test.unit.base import BaseTestCase
+from ndg.security.common.utils.configfileparsers import (
+    CaseSensitiveConfigParser)
+
+
+class AttributeAuthoritySAMLInterfaceTestCase(BaseTestCase):
     """NDG Attribute Authority SAML SOAP Binding client unit tests"""
+
     HERE_DIR = os.path.dirname(__file__)
     CONFIG_FILENAME = 'test_samlattributeauthorityclient.cfg'
     CONFIG_FILEPATH = os.path.join(HERE_DIR, CONFIG_FILENAME)
@@ -50,11 +53,20 @@ class AttributeAuthoritySAMLInterfaceTestCase(
     def __init__(self, *arg, **kw):
         super(AttributeAuthoritySAMLInterfaceTestCase, self).__init__(*arg, 
                                                                       **kw)
+
+        if 'NDGSEC_AACLNT_UNITTEST_DIR' not in environ:
+            environ['NDGSEC_AACLNT_UNITTEST_DIR'
+                                        ] = path.abspath(path.dirname(__file__))
+
+        self.cfgParser = CaseSensitiveConfigParser()
+        self.cfgFilePath = path.join(environ['NDGSEC_AACLNT_UNITTEST_DIR'],
+                                     self.__class__.CONFIG_FILENAME)
+        self.cfgParser.read(self.cfgFilePath)
         
-        # Run same config but on two different ports - one HTTP and one HTTPS
-        self.startSiteAAttributeAuthority()
-        self.startSiteAAttributeAuthority(withSSL=True, port=5443)
-       
+        self.cfg = {}
+        for section in self.cfgParser.sections():
+            self.cfg[section] = dict(self.cfgParser.items(section))
+    
     def test01AttributeQuery(self):
         _cfg = self.cfg['test01AttributeQuery']
         
@@ -103,25 +115,8 @@ class AttributeAuthoritySAMLInterfaceTestCase(
         binding = SOAPBinding()
         binding.serialise = AttributeQueryElementTree.toXML
         binding.deserialise = ResponseElementTree.fromXML
-        response = binding.send(attributeQuery, _cfg['uri'])
         
-        self.assert_(response.status.statusCode.value==StatusCode.SUCCESS_URI)
-        
-        # Check Query ID matches the query ID the service received
-        self.assert_(response.inResponseTo == attributeQuery.id)
-        
-        now = datetime.utcnow()
-        self.assert_(response.issueInstant < now)
-        self.assert_(response.assertions[-1].issueInstant < now)        
-        self.assert_(response.assertions[-1].conditions.notBefore < now) 
-        self.assert_(response.assertions[-1].conditions.notOnOrAfter > now)
-         
-        samlResponseElem = ResponseElementTree.toXML(response)
-        
-        print("SAML Response ...")
-        print(ElementTree.tostring(samlResponseElem))
-        print("Pretty print SAML Response ...")
-        print(prettyPrint(samlResponseElem))
+        self.assertRaises(URLError, binding.send, attributeQuery, _cfg['uri'])
              
     def test02AttributeQueryInvalidIssuer(self):
         _cfg = self.cfg['test02AttributeQueryInvalidIssuer']
@@ -151,18 +146,9 @@ class AttributeAuthoritySAMLInterfaceTestCase(
         binding = SOAPBinding()
         binding.serialise = AttributeQueryElementTree.toXML
         binding.deserialise = ResponseElementTree.fromXML
-        response = binding.send(attributeQuery, _cfg['uri'])
-
-        samlResponseElem = ResponseElementTree.toXML(response)
         
-        print("SAML Response ...")
-        print(ElementTree.tostring(samlResponseElem))
-        print("Pretty print SAML Response ...")
-        print(prettyPrint(samlResponseElem))
-        
-        self.assert_(
-            response.status.statusCode.value==StatusCode.REQUEST_DENIED_URI)
-                    
+        self.assertRaises(URLError, binding.send, attributeQuery, _cfg['uri'])
+                   
     def test03AttributeQueryUnknownSubject(self):
         _cfg = self.cfg['test03AttributeQueryUnknownSubject']
         
@@ -191,16 +177,8 @@ class AttributeAuthoritySAMLInterfaceTestCase(
         binding = SOAPBinding()
         binding.serialise = AttributeQueryElementTree.toXML
         binding.deserialise = ResponseElementTree.fromXML
-        response = binding.send(attributeQuery, _cfg['uri'])
         
-        samlResponseElem = ResponseElementTree.toXML(response)
-        print("SAML Response ...")
-        print(ElementTree.tostring(samlResponseElem))
-        print("Pretty print SAML Response ...")
-        print(prettyPrint(samlResponseElem))
-        
-        self.assert_(
-            response.status.statusCode.value==StatusCode.UNKNOWN_PRINCIPAL_URI)
+        self.assertRaises(URLError, binding.send, attributeQuery, _cfg['uri'])
              
     def test04AttributeQueryInvalidAttrName(self):
         thisSection = 'test04AttributeQueryInvalidAttrName'
@@ -232,17 +210,8 @@ class AttributeAuthoritySAMLInterfaceTestCase(
                      AttributeAuthoritySAMLInterfaceTestCase.CONFIG_FILEPATH, 
                      prefix='saml.', 
                      section=thisSection)
-        response = binding.send(attributeQuery, _cfg['uri'])
         
-        samlResponseElem = ResponseElementTree.toXML(response)
-        
-        print("SAML Response ...")
-        print(ElementTree.tostring(samlResponseElem))
-        print("Pretty print SAML Response ...")
-        print(prettyPrint(samlResponseElem))
-        
-        self.assert_(response.status.statusCode.value==\
-                     StatusCode.INVALID_ATTR_NAME_VALUE_URI)
+        self.assertRaises(URLError, binding.send, attributeQuery, _cfg['uri'])
              
     def test05AttributeQueryWithESGFAttributeType(self):
         # Test interface with custom ESGF Group/Role attribute type
@@ -275,19 +244,7 @@ class AttributeAuthoritySAMLInterfaceTestCase(
                      prefix='saml.',
                      section=thisSection)
         
-        response = binding.send(attributeQuery, _cfg['uri'])
-        
-        samlResponseElem = ESGFResponseElementTree.toXML(response)
-        
-        print("SAML Response ...")
-        print(ElementTree.tostring(samlResponseElem))
-        print("Pretty print SAML Response ...")
-        print(prettyPrint(samlResponseElem))
-        
-        self.assert_(response.assertions[0].attributeStatements[0].attributes[0
-            ].attributeValues[0].value == ('siteagroup', 'default'))
-        
-        self.assert_(response.status.statusCode.value == StatusCode.SUCCESS_URI)
+        self.assertRaises(URLError, binding.send, attributeQuery, _cfg['uri'])
        
     def test06AttributeQuerySOAPBindingInterface(self):
         _cfg = self.cfg['test06AttributeQuerySOAPBindingInterface']
@@ -305,15 +262,7 @@ class AttributeAuthoritySAMLInterfaceTestCase(
         binding.setQuerySubjectId(query,
                             AttributeAuthoritySAMLInterfaceTestCase.OPENID_URI)
 
-        response = binding.send(query, uri=_cfg['uri'])
-        samlResponseElem = ResponseElementTree.toXML(response)
-        
-        print("SAML Response ...")
-        print(ElementTree.tostring(samlResponseElem))
-        print("Pretty print SAML Response ...")
-        print(prettyPrint(samlResponseElem))
-        
-        self.assert_(response.status.statusCode.value==StatusCode.SUCCESS_URI)
+        self.assertRaises(URLError, binding.send, query, uri=_cfg['uri'])
 
     def test07AttributeQueryFromConfig(self):
         thisSection = 'test07AttributeQueryFromConfig'
@@ -324,15 +273,8 @@ class AttributeAuthoritySAMLInterfaceTestCase(
                                                        prefix='attributeQuery.')
         query = binding.makeQuery()
         binding.setQuerySubjectId(query, _cfg['subject'])
-        response = binding.send(query, uri=_cfg['uri'])
-        samlResponseElem = ResponseElementTree.toXML(response)
         
-        print("SAML Response ...")
-        print(ElementTree.tostring(samlResponseElem))
-        print("Pretty print SAML Response ...")
-        print(prettyPrint(samlResponseElem))
-        
-        self.assert_(response.status.statusCode.value==StatusCode.SUCCESS_URI)
+        self.assertRaises(URLError, binding.send, query, uri=_cfg['uri'])
         
     def test08AttributeQuerySslSOAPBindingInterface(self):
         thisSection = 'test08AttributeQuerySslSOAPBindingInterface'
@@ -344,15 +286,8 @@ class AttributeAuthoritySAMLInterfaceTestCase(
         
         query = binding.makeQuery()
         binding.setQuerySubjectId(query, _cfg['subject'])
-        response = binding.send(query, uri=_cfg['uri'])
-        samlResponseElem = ResponseElementTree.toXML(response)
         
-        print("SAML Response ...")
-        print(ElementTree.tostring(samlResponseElem))
-        print("Pretty print SAML Response ...")
-        print(prettyPrint(samlResponseElem))
-        
-        self.assert_(response.status.statusCode.value==StatusCode.SUCCESS_URI)
+        self.assertRaises(URLError, binding.send, query, uri=_cfg['uri'])
 
        
 if __name__ == "__main__":

@@ -27,7 +27,7 @@ from datetime import datetime, timedelta
 from ndg.saml.utils import SAMLDateTime
 from ndg.saml.xml.etree import AssertionElementTree
 
-from ndg.security.test.unit.base import BaseTestCase
+from ndg.security.common.test.unit.base import BaseTestCase
 from ndg.security.common.utils.etree import prettyPrint
 from ndg.security.common.credentialwallet import SAMLAssertionWallet
 
