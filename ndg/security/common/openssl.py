@@ -14,12 +14,47 @@ import re, os
 from ConfigParser import SafeConfigParser
 from M2Crypto.X509 import X509_Name
 
-#_____________________________________________________________________________        
+
+def m2_get_dn_field(dn, field_name, field_sep=None, name_val_sep=None):
+    '''Convenience utility for parsing fields from X.509 subject name returned from M2Crypto
+    API'''
+    if field_sep is None:
+        field_sep = ','
+    
+    if name_val_sep is None:
+        name_val_sep = '='
+        
+    for f in dn.split(field_sep):
+        name, val = f.strip().split(name_val_sep)
+        if name.upper() == field_name:
+            return val
+
+def m2_get_cert_ext_values(cert, ext_name, field_sep=None, field_prefix=None):
+    '''Get subject alt names from M2Crypto.X509.X509 cert object -
+    return None if none found
+    
+    e.g.
+    
+    ``m2_get_cert_ext_values(cert, 'subjectAltName, field_prefix="DNS:", field_sep=",")``
+    '''
+    if field_prefix is None:
+        field_prefix = '' # 'DNS:' for subject alt names prefix
+        
+    for i in cert.get_ext_count():
+        ext = cert.get_ext_at(i)
+        if ext.get_name() == ext_name:
+            val = ext.get_value()
+            if field_sep is None:
+                yield val
+            else:
+                for i in val.split(field_sep):
+                    yield i.strip()[len(field_prefix)] 
+
+
 class OpenSSLConfigError(Exception):
     """Exceptions related to OpenSSLConfig class"""   
 
 
-#_____________________________________________________________________________        
 class OpenSSLConfig(SafeConfigParser, object):
     """Wrapper to OpenSSL Configuration file to allow extraction of
     required distinguished name used for making certificate requests

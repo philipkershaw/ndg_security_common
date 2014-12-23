@@ -12,7 +12,7 @@ import UserDict
 from urlparse import urlparse, urlunparse, urljoin, ParseResult
 
 # Interpret a string as a boolean
-str2Bool = lambda str: str.lower() in ("yes", "true", "t", "1")
+str2Bool = lambda str_: str_.lower() in ("yes", "true", "t", "1")
 
 
 class UniqList(list):
@@ -20,11 +20,11 @@ class UniqList(list):
     If an item is added that is already present then it is silently omitted
     from the list
     """
-    def extend(self, iter):
-        return super(UniqList, self).extend([i for i in iter if i not in self])
+    def extend(self, iter_):
+        return super(UniqList, self).extend([i for i in iter_ if i not in self])
         
-    def __iadd__(self, iter):
-        return super(UniqList, self).__iadd__([i for i in iter 
+    def __iadd__(self, iter_):
+        return super(UniqList, self).__iadd__([i for i in iter_ 
                                                if i not in self])
          
     def append(self, item):
@@ -56,21 +56,21 @@ class TypedList(list):
     elementType = property(fget=_getElementType, 
                            doc="The allowed type or types for list elements")
      
-    def extend(self, iter):
-        for i in iter:
+    def extend(self, iter_):
+        for i in iter_:
             if not isinstance(i, self.__elementType):
                 raise TypeError("List items must be of type %s" % 
                                 (self.__elementType,))
                 
-        return super(TypedList, self).extend(iter)
+        return super(TypedList, self).extend(iter_)
         
-    def __iadd__(self, iter):
-        for i in iter:
+    def __iadd__(self, iter_):
+        for i in iter_:
             if not isinstance(i, self.__elementType):
                 raise TypeError("List items must be of type %s" % 
                                 (self.__elementType,))
                     
-        return super(TypedList, self).__iadd__(iter)
+        return super(TypedList, self).__iadd__(iter_)
          
     def append(self, item):
         if not isinstance(item, self.__elementType):
