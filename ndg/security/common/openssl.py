@@ -16,8 +16,8 @@ from M2Crypto.X509 import X509_Name
 
 
 def m2_get_dn_field(dn, field_name, field_sep=None, name_val_sep=None):
-    '''Convenience utility for parsing fields from X.509 subject name returned from M2Crypto
-    API'''
+    '''Convenience utility for parsing fields from X.509 subject name returned 
+    from M2Crypto API'''
     if field_sep is None:
         field_sep = ','
     
