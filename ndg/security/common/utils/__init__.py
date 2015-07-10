@@ -14,6 +14,9 @@ from urlparse import urlparse, urlunparse, urljoin, ParseResult
 # Interpret a string as a boolean
 str2Bool = lambda str_: str_.lower() in ("yes", "true", "t", "1")
 
+# Check if var is an iterable
+is_iterable = lambda obj: getattr(obj, '__iter__', False)
+
 
 class UniqList(list):
     """Extended version of list type to enable a list with unique items.

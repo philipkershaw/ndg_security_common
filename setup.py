@@ -24,15 +24,15 @@ import os
 
 # Packages needed for NDG Security
 # Note commented out ones fail with PyPI - use explicit link instead
-_pkgDependencies = [
-    'M2Crypto',
+_PKG_DEPENDENCIES = [
+    'ndg-httpsclient',
     'ndg_saml',
     'ndg_xacml'
     ]
 
 # Python 2.5 includes ElementTree by default
 if sys.version_info[0:2] < (2, 5):
-    _pkgDependencies += ['ElementTree', 'cElementTree']
+    _PKG_DEPENDENCIES += ['ElementTree', 'cElementTree']
 
 THIS_DIR = os.path.dirname(__file__)
 try:
@@ -60,7 +60,12 @@ setup(
     maintainer_email =   	'Philip.Kershaw@stfc.ac.uk',
     url =            		'https://github.com/cedadev/ndg_security_common',
     license =               'BSD - See LICENCE file for details',
-    install_requires =		_pkgDependencies,
+    install_requires =		_PKG_DEPENDENCIES,
+    extras_require = {
+        # M2Crypto is required for SSL Client based validation of OpenID
+        # Providers
+        'openid_relying_party_provider_validation':  ["M2Crypto"],
+    },
     dependency_links =		["http://dist.ceda.ac.uk/pip/"],
     packages =       		find_packages(),
     namespace_packages =	['ndg', 'ndg.security'],
