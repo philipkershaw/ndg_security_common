@@ -49,7 +49,7 @@ with the Earth System Grid Federation.
 
 setup(
     name =           		'ndg_security_common',
-    version =        		'2.4.0',
+    version =        		'2.5.0',
     description =           'NERC DataGrid Security package containing common '
                             'utilities used by both server and client '
                             'packages',

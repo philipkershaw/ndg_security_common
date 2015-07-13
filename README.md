@@ -25,6 +25,7 @@ need to modify application code.
 
 Releases
 --------
+ * 2.5.0: altered utilities content to remove M2Crypto dependencies.
  * 2.4.0: provide additional M2Crypto wrapper utilties - update synchronised 
  with ndg_security_server to OpenID Provider to support HTTP Basic Auth to allow 
  easy authentication with non-browser based clients
