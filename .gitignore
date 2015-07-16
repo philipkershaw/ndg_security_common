@@ -1,2 +1,4 @@
 /ndg_security_common.egg-info/
 /dist/
+.pydevproject
+.project
