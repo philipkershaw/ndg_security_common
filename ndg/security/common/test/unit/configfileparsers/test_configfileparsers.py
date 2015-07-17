@@ -11,17 +11,15 @@ __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
 
 import unittest
-import os, sys, getpass, re
-import traceback
+import os
 
 from ndg.security.common.utils.configfileparsers import \
     CaseSensitiveConfigParser, INIPropertyFile, readAndValidateProperties
 from ConfigParser import SafeConfigParser
 
-from os.path import expandvars as xpdVars
 from os.path import join as jnPath
-mkPath=lambda file: jnPath(os.environ['NDGSEC_CONFIGFILEPARSERS_UNITTEST_DIR'],
-                           file)
+mkPath=lambda file_: jnPath(os.environ['NDGSEC_CONFIGFILEPARSERS_UNITTEST_DIR'],
+                           file_)
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -112,5 +110,6 @@ class ConfigFileParsersTestCase(unittest.TestCase):
         assert(prop['test3ReadAndValidateProperties']
             ['credentialWallet']['attributeAuthorityURI']=='A DEFAULT VALUE')
         
+
 if __name__ == "__main__":
     unittest.main()        

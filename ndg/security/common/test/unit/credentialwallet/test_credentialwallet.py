@@ -19,7 +19,7 @@ from string import Template
 from cStringIO import StringIO
 import cPickle as pickle
 
-from elementtree import ElementTree
+from xml.etree import ElementTree
 
 from time import sleep
 from datetime import datetime, timedelta

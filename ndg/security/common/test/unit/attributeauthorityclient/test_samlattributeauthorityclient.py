@@ -27,6 +27,8 @@ from ndg.saml.xml.etree import AttributeQueryElementTree, ResponseElementTree
 from ndg.saml.saml2.core import (Subject, Issuer, Attribute, NameID, 
                                  AttributeQuery, XSStringAttributeValue)
 
+from ndg.saml.utils.factory import AttributeQueryFactory
+
 from ndg.saml.saml2.binding.soap.client import SOAPBinding
 from ndg.saml.saml2.binding.soap.client.attributequery import (
                                         AttributeQuerySOAPBinding, 
@@ -55,9 +57,9 @@ class AttributeAuthoritySAMLInterfaceTestCase(BaseTestCase):
                                         ] = path.abspath(path.dirname(__file__))
 
         self.cfgParser = CaseSensitiveConfigParser()
-        self.cfgFilePath = path.join(environ['NDGSEC_AACLNT_UNITTEST_DIR'],
+        self.cfg_filepath = path.join(environ['NDGSEC_AACLNT_UNITTEST_DIR'],
                                      self.__class__.CONFIG_FILENAME)
-        self.cfgParser.read(self.cfgFilePath)
+        self.cfgParser.read(self.cfg_filepath)
         
         self.cfg = {}
         for section in self.cfgParser.sections():
@@ -66,20 +68,20 @@ class AttributeAuthoritySAMLInterfaceTestCase(BaseTestCase):
     def test01AttributeQuery(self):
         _cfg = self.cfg['test01AttributeQuery']
         
-        attributeQuery = AttributeQuery()
-        attributeQuery.version = SAMLVersion(SAMLVersion.VERSION_20)
-        attributeQuery.id = str(uuid4())
-        attributeQuery.issueInstant = datetime.utcnow()
+        attribute_query = AttributeQuery()
+        attribute_query.version = SAMLVersion(SAMLVersion.VERSION_20)
+        attribute_query.id = str(uuid4())
+        attribute_query.issueInstant = datetime.utcnow()
         
-        attributeQuery.issuer = Issuer()
-        attributeQuery.issuer.format = Issuer.X509_SUBJECT
-        attributeQuery.issuer.value = "/CN=Authorisation Service/O=Site A"    
+        attribute_query.issuer = Issuer()
+        attribute_query.issuer.format = Issuer.X509_SUBJECT
+        attribute_query.issuer.value = "/CN=Authorisation Service/O=Site A"    
                         
-        attributeQuery.subject = Subject()
-        attributeQuery.subject.nameID = NameID()
-        attributeQuery.subject.nameID.format = \
+        attribute_query.subject = Subject()
+        attribute_query.subject.nameID = NameID()
+        attribute_query.subject.nameID.format = \
             ESGFSamlNamespaces.NAMEID_FORMAT #@UndefinedVariable
-        attributeQuery.subject.nameID.value = _cfg['subject']
+        attribute_query.subject.nameID.value = _cfg['subject']
         xsStringNs = SAMLConstants.XSD_NS+"#"+\
                                         XSStringAttributeValue.TYPE_LOCAL_NAME
         fnAttribute = Attribute()
@@ -87,51 +89,51 @@ class AttributeAuthoritySAMLInterfaceTestCase(BaseTestCase):
         fnAttribute.nameFormat = xsStringNs
         fnAttribute.friendlyName = "FirstName"
 
-        attributeQuery.attributes.append(fnAttribute)
+        attribute_query.attributes.append(fnAttribute)
     
         lnAttribute = Attribute()
         lnAttribute.name = ESGFSamlNamespaces.LASTNAME_ATTRNAME #@UndefinedVariable
         lnAttribute.nameFormat = xsStringNs
         lnAttribute.friendlyName = "LastName"
 
-        attributeQuery.attributes.append(lnAttribute)
+        attribute_query.attributes.append(lnAttribute)
     
         emailAddressAttribute = Attribute()
         emailAddressAttribute.name = ESGFSamlNamespaces.EMAILADDRESS_ATTRNAME #@UndefinedVariable
         emailAddressAttribute.nameFormat = xsStringNs
         emailAddressAttribute.friendlyName = "emailAddress"
         
-        attributeQuery.attributes.append(emailAddressAttribute) 
+        attribute_query.attributes.append(emailAddressAttribute) 
 
         siteAAttribute = Attribute()
         siteAAttribute.name = _cfg['siteAttributeName']
         siteAAttribute.nameFormat = xsStringNs
         
-        attributeQuery.attributes.append(siteAAttribute) 
+        attribute_query.attributes.append(siteAAttribute) 
 
         binding = SOAPBinding()
         binding.serialise = AttributeQueryElementTree.toXML
         binding.deserialise = ResponseElementTree.fromXML
         
-        self.assertRaises(URLError, binding.send, attributeQuery, _cfg['uri'])
+        self.assertRaises(URLError, binding.send, attribute_query, _cfg['uri'])
              
     def test02AttributeQueryInvalidIssuer(self):
         _cfg = self.cfg['test02AttributeQueryInvalidIssuer']
         
-        attributeQuery = AttributeQuery()
-        attributeQuery.version = SAMLVersion(SAMLVersion.VERSION_20)
-        attributeQuery.id = str(uuid4())
-        attributeQuery.issueInstant = datetime.utcnow()
+        attribute_query = AttributeQuery()
+        attribute_query.version = SAMLVersion(SAMLVersion.VERSION_20)
+        attribute_query.id = str(uuid4())
+        attribute_query.issueInstant = datetime.utcnow()
         
-        attributeQuery.issuer = Issuer()
-        attributeQuery.issuer.format = Issuer.X509_SUBJECT
-        attributeQuery.issuer.value = "/O=Invalid Site/CN=PDP"    
+        attribute_query.issuer = Issuer()
+        attribute_query.issuer.format = Issuer.X509_SUBJECT
+        attribute_query.issuer.value = "/O=Invalid Site/CN=PDP"    
                         
-        attributeQuery.subject = Subject()  
-        attributeQuery.subject.nameID = NameID()
-        attributeQuery.subject.nameID.format = \
+        attribute_query.subject = Subject()  
+        attribute_query.subject.nameID = NameID()
+        attribute_query.subject.nameID.format = \
             ESGFSamlNamespaces.NAMEID_FORMAT #@UndefinedVariable
-        attributeQuery.subject.nameID.value = _cfg['subject']
+        attribute_query.subject.nameID.value = _cfg['subject']
         xsStringNs = SAMLConstants.XSD_NS+"#"+\
                                         XSStringAttributeValue.TYPE_LOCAL_NAME
 
@@ -139,31 +141,31 @@ class AttributeAuthoritySAMLInterfaceTestCase(BaseTestCase):
         siteAAttribute.name = _cfg['siteAttributeName']
         siteAAttribute.nameFormat = xsStringNs
         
-        attributeQuery.attributes.append(siteAAttribute) 
+        attribute_query.attributes.append(siteAAttribute) 
 
         binding = SOAPBinding()
         binding.serialise = AttributeQueryElementTree.toXML
         binding.deserialise = ResponseElementTree.fromXML
         
-        self.assertRaises(URLError, binding.send, attributeQuery, _cfg['uri'])
+        self.assertRaises(URLError, binding.send, attribute_query, _cfg['uri'])
                    
     def test03AttributeQueryUnknownSubject(self):
         _cfg = self.cfg['test03AttributeQueryUnknownSubject']
         
-        attributeQuery = AttributeQuery()
-        attributeQuery.version = SAMLVersion(SAMLVersion.VERSION_20)
-        attributeQuery.id = str(uuid4())
-        attributeQuery.issueInstant = datetime.utcnow()
+        attribute_query = AttributeQuery()
+        attribute_query.version = SAMLVersion(SAMLVersion.VERSION_20)
+        attribute_query.id = str(uuid4())
+        attribute_query.issueInstant = datetime.utcnow()
         
-        attributeQuery.issuer = Issuer()
-        attributeQuery.issuer.format = Issuer.X509_SUBJECT
-        attributeQuery.issuer.value = "/CN=Authorisation Service/O=Site A"    
+        attribute_query.issuer = Issuer()
+        attribute_query.issuer.format = Issuer.X509_SUBJECT
+        attribute_query.issuer.value = "/CN=Authorisation Service/O=Site A"    
                         
-        attributeQuery.subject = Subject()  
-        attributeQuery.subject.nameID = NameID()
-        attributeQuery.subject.nameID.format = \
+        attribute_query.subject = Subject()  
+        attribute_query.subject.nameID = NameID()
+        attribute_query.subject.nameID.format = \
             ESGFSamlNamespaces.NAMEID_FORMAT #@UndefinedVariable
-        attributeQuery.subject.nameID.value = _cfg['subject']
+        attribute_query.subject.nameID.value = _cfg['subject']
         xsStringNs = SAMLConstants.XSD_NS+"#"+\
                                         XSStringAttributeValue.TYPE_LOCAL_NAME
 
@@ -171,32 +173,32 @@ class AttributeAuthoritySAMLInterfaceTestCase(BaseTestCase):
         siteAAttribute.name = _cfg['siteAttributeName']
         siteAAttribute.nameFormat = xsStringNs
         
-        attributeQuery.attributes.append(siteAAttribute) 
+        attribute_query.attributes.append(siteAAttribute) 
 
         binding = SOAPBinding()
         binding.serialise = AttributeQueryElementTree.toXML
         binding.deserialise = ResponseElementTree.fromXML
         
-        self.assertRaises(URLError, binding.send, attributeQuery, _cfg['uri'])
+        self.assertRaises(URLError, binding.send, attribute_query, _cfg['uri'])
              
     def test04AttributeQueryInvalidAttrName(self):
-        thisSection = 'test04AttributeQueryInvalidAttrName'
-        _cfg = self.cfg[thisSection]
+        this_section = 'test04AttributeQueryInvalidAttrName'
+        _cfg = self.cfg[this_section]
         
-        attributeQuery = AttributeQuery()
-        attributeQuery.version = SAMLVersion(SAMLVersion.VERSION_20)
-        attributeQuery.id = str(uuid4())
-        attributeQuery.issueInstant = datetime.utcnow()
+        attribute_query = AttributeQuery()
+        attribute_query.version = SAMLVersion(SAMLVersion.VERSION_20)
+        attribute_query.id = str(uuid4())
+        attribute_query.issueInstant = datetime.utcnow()
         
-        attributeQuery.issuer = Issuer()
-        attributeQuery.issuer.format = Issuer.X509_SUBJECT
-        attributeQuery.issuer.value = "/CN=Authorisation Service/O=Site A"    
+        attribute_query.issuer = Issuer()
+        attribute_query.issuer.format = Issuer.X509_SUBJECT
+        attribute_query.issuer.value = "/CN=Authorisation Service/O=Site A"    
                         
-        attributeQuery.subject = Subject()  
-        attributeQuery.subject.nameID = NameID()
-        attributeQuery.subject.nameID.format = \
+        attribute_query.subject = Subject()  
+        attribute_query.subject.nameID = NameID()
+        attribute_query.subject.nameID.format = \
             ESGFSamlNamespaces.NAMEID_FORMAT #@UndefinedVariable
-        attributeQuery.subject.nameID.value = _cfg['subject']
+        attribute_query.subject.nameID.value = _cfg['subject']
         xsStringNs = SAMLConstants.XSD_NS+"#"+\
                                         XSStringAttributeValue.TYPE_LOCAL_NAME
 
@@ -204,90 +206,99 @@ class AttributeAuthoritySAMLInterfaceTestCase(BaseTestCase):
         invalidAttribute.name = "myInvalidAttributeName"
         invalidAttribute.nameFormat = xsStringNs
         
-        attributeQuery.attributes.append(invalidAttribute) 
+        attribute_query.attributes.append(invalidAttribute) 
 
-        binding = SOAPBinding.fromConfig(
-                     AttributeAuthoritySAMLInterfaceTestCase.CONFIG_FILEPATH, 
-                     prefix='saml.', 
-                     section=thisSection)
+        binding = SOAPBinding.fromConfig(self.__class__.CONFIG_FILEPATH, 
+                                         prefix='saml.', 
+                                         section=this_section)
         
-        self.assertRaises(URLError, binding.send, attributeQuery, _cfg['uri'])
+        self.assertRaises(URLError, binding.send, attribute_query, _cfg['uri'])
              
     def test05AttributeQueryWithESGFAttributeType(self):
         # Test interface with custom ESGF Group/Role attribute type
-        thisSection = 'test05AttributeQueryWithESGFAttributeType'
-        _cfg = self.cfg[thisSection]
+        this_section = 'test05AttributeQueryWithESGFAttributeType'
+        _cfg = self.cfg[this_section]
         
-        attributeQuery = AttributeQuery()
-        attributeQuery.version = SAMLVersion(SAMLVersion.VERSION_20)
-        attributeQuery.id = str(uuid4())
-        attributeQuery.issueInstant = datetime.utcnow()
+        attribute_query = AttributeQuery()
+        attribute_query.version = SAMLVersion(SAMLVersion.VERSION_20)
+        attribute_query.id = str(uuid4())
+        attribute_query.issueInstant = datetime.utcnow()
         
-        attributeQuery.issuer = Issuer()
-        attributeQuery.issuer.format = Issuer.X509_SUBJECT
-        attributeQuery.issuer.value = "/CN=Authorisation Service/O=Site A"    
+        attribute_query.issuer = Issuer()
+        attribute_query.issuer.format = Issuer.X509_SUBJECT
+        attribute_query.issuer.value = "/CN=Authorisation Service/O=Site A"    
                         
-        attributeQuery.subject = Subject()  
-        attributeQuery.subject.nameID = NameID()
-        attributeQuery.subject.nameID.format = \
+        attribute_query.subject = Subject()  
+        attribute_query.subject.nameID = NameID()
+        attribute_query.subject.nameID.format = \
             ESGFSamlNamespaces.NAMEID_FORMAT #@UndefinedVariable
-        attributeQuery.subject.nameID.value = _cfg['subject']
+        attribute_query.subject.nameID.value = _cfg['subject']
         
         groupRoleAttribute = Attribute()
         groupRoleAttribute.name = self.__class__.ATTRIBUTE_NAMES[-1]
         groupRoleAttribute.nameFormat = \
             ESGFGroupRoleAttributeValue.TYPE_LOCAL_NAME
         
-        attributeQuery.attributes.append(groupRoleAttribute) 
+        attribute_query.attributes.append(groupRoleAttribute) 
 
-        binding = SOAPBinding.fromConfig(
-                     AttributeAuthoritySAMLInterfaceTestCase.CONFIG_FILEPATH, 
-                     prefix='saml.',
-                     section=thisSection)
+        binding = SOAPBinding.fromConfig(self.__class__.CONFIG_FILEPATH, 
+                                         prefix='saml.',
+                                         section=this_section)
         
-        self.assertRaises(URLError, binding.send, attributeQuery, _cfg['uri'])
+        self.assertRaises(URLError, binding.send, attribute_query, _cfg['uri'])
        
     def test06AttributeQuerySOAPBindingInterface(self):
         _cfg = self.cfg['test06AttributeQuerySOAPBindingInterface']
         
-        binding = AttributeQuerySOAPBinding()
+        query = AttributeQueryFactory.create()
         
-        binding.subjectIdFormat = \
-            ESGFSamlNamespaces.NAMEID_FORMAT #@UndefinedVariable
-        binding.issuerName = \
-            str(AttributeAuthoritySAMLInterfaceTestCase.VALID_REQUESTOR_IDS[0])
-        binding.issuerFormat = Issuer.X509_SUBJECT
-        
-        binding.queryAttributes = ESGFDefaultQueryAttributes.ATTRIBUTES
+        query.subject.nameID.format = ESGFSamlNamespaces.NAMEID_FORMAT #@UndefinedVariable
+        query.subject.nameID.value = self.__class__.OPENID_URI
 
-        query = binding.makeQuery()
-        binding.setQuerySubjectId(query,
-                            AttributeAuthoritySAMLInterfaceTestCase.OPENID_URI)
+        query.issuer.value = str(self.__class__.VALID_REQUESTOR_IDS[0])        
+        query.issuer.format = Issuer.X509_SUBJECT
+        query.attributes = ESGFDefaultQueryAttributes.ATTRIBUTES       
+
+        binding = AttributeQuerySOAPBinding()
 
         self.assertRaises(URLError, binding.send, query, uri=_cfg['uri'])
 
     def test07AttributeQueryFromConfig(self):
-        thisSection = 'test07AttributeQueryFromConfig'
-        _cfg = self.cfg[thisSection]
+        this_section = 'test07AttributeQueryFromConfig'
+        _cfg = self.cfg[this_section]
         
-        binding = AttributeQuerySOAPBinding.fromConfig(self.cfgFilePath, 
-                                                       section=thisSection,
-                                                       prefix='attributeQuery.')
-        query = binding.makeQuery()
-        binding.setQuerySubjectId(query, _cfg['subject'])
+        query = AttributeQueryFactory.from_config(self.cfg_filepath, 
+                                                  section=this_section,
+                                                  prefix='attributeQuery.')
         
+        binding = AttributeQuerySOAPBinding.fromConfig(self.cfg_filepath, 
+                                                  section=this_section,
+                                                  prefix='binding.')
+        
+        self.assertIn("1.2", str(binding.clockSkewTolerance), 
+                      'Error parsing clock skew tolerance')
         self.assertRaises(URLError, binding.send, query, uri=_cfg['uri'])
         
     def test08AttributeQuerySslSOAPBindingInterface(self):
-        thisSection = 'test08AttributeQuerySslSOAPBindingInterface'
-        _cfg = self.cfg[thisSection]
+        this_section = 'test08AttributeQuerySslSOAPBindingInterface'
+        _cfg = self.cfg[this_section]
         
-        binding = AttributeQuerySslSOAPBinding.fromConfig(self.cfgFilePath, 
-                                                       section=thisSection,
-                                                       prefix='attributeQuery.')
+        binding = AttributeQuerySslSOAPBinding.fromConfig(
+                                            self.cfg_filepath, 
+                                            section=this_section,
+                                            prefix='binding.')
         
-        query = binding.makeQuery()
-        binding.setQuerySubjectId(query, _cfg['subject'])
+        query = AttributeQueryFactory.from_config(self.cfg_filepath, 
+                                                  section=this_section,
+                                                  prefix='attributeQuery.')
+        
+        self.assertEqual(query.issuer.format, Issuer.UNSPECIFIED, 
+                         'Error setting issuer format')
+        
+        self.assertEqual(binding.sslCtxProxy.sslPriKeyFilePath,
+                         os.path.expandvars(
+                                '$NDGSEC_TEST_CONFIG_DIR/pki/localhost.key'), 
+                         'Error reading private key file path')
         
         self.assertRaises(URLError, binding.send, query, uri=_cfg['uri'])
 
