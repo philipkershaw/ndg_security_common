@@ -36,7 +36,7 @@ if sys.version_info[0:2] < (2, 5):
 
 THIS_DIR = os.path.dirname(__file__)
 try:
-    LONG_DESCR = open(os.path.join(THIS_DIR, 'README.md')).read()
+    LONG_DESCR = open(os.path.join(THIS_DIR, 'README.rst')).read()
 except IOError:
     LONG_DESCR = """\
 NDG Security package for components common to client and server side 
@@ -49,7 +49,7 @@ with the Earth System Grid Federation.
 
 setup(
     name =           		'ndg_security_common',
-    version =        		'2.5.0',
+    version =        		'2.6.0',
     description =           'NERC DataGrid Security package containing common '
                             'utilities used by both server and client '
                             'packages',

@@ -40,7 +40,7 @@ def m2_get_cert_ext_values(cert, ext_name, field_sep=None, field_prefix=None):
     if field_prefix is None:
         field_prefix = '' # 'DNS:' for subject alt names prefix
         
-    for i in cert.get_ext_count():
+    for i in range(cert.get_ext_count()):
         ext = cert.get_ext_at(i)
         if ext.get_name() == ext_name:
             val = ext.get_value()
@@ -48,7 +48,7 @@ def m2_get_cert_ext_values(cert, ext_name, field_sep=None, field_prefix=None):
                 yield val
             else:
                 for i in val.split(field_sep):
-                    yield i.strip()[len(field_prefix)] 
+                    yield i.strip()[len(field_prefix):] 
                     
                     
 class X500DNError(Exception):
