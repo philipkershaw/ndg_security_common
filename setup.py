@@ -39,9 +39,9 @@ try:
     LONG_DESCR = open(os.path.join(THIS_DIR, 'README.rst')).read()
 except IOError:
     LONG_DESCR = """\
-NDG Security package for components common to client and server side 
-==================================================================== 
-NDG Security is the security system originally developed for the UK Natural 
+NDG Security package for components common to client and server side
+====================================================================
+NDG Security is the security system originally developed for the UK Natural
 Environment Research Council funded NERC DataGrid.  It's a system to provide
 federated access control and identity management and has been applied for use
 with the Earth System Grid Federation.
@@ -68,7 +68,6 @@ setup(
     },
     dependency_links =		["http://dist.ceda.ac.uk/pip/"],
     packages =       		find_packages(),
-    namespace_packages =	['ndg', 'ndg.security'],
     entry_points =         None,
     test_suite =		   'ndg.security.common.test',
     zip_safe =             False
