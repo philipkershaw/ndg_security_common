@@ -15,7 +15,7 @@ import os
 
 from ndg.security.common.utils.configfileparsers import \
     CaseSensitiveConfigParser, INIPropertyFile, readAndValidateProperties
-from ConfigParser import SafeConfigParser
+from configparser import SafeConfigParser
 
 from os.path import join as jnPath
 mkPath=lambda file_: jnPath(os.environ['NDGSEC_CONFIGFILEPARSERS_UNITTEST_DIR'],
@@ -63,15 +63,15 @@ class ConfigFileParsersTestCase(unittest.TestCase):
         prop = cfgFile(self.configFilePath, validKeys,
                        sections=('test2INIPropertyFile',),
                        prefix='attributeAuthority')
-        print "properties ..."
-        print prop
-        print("prop['test2INIPropertyFile']['name']=%s"%
-                                        prop['test2INIPropertyFile']['name'])
+        print("properties ...")
+        print(prop)
+        print(("prop['test2INIPropertyFile']['name']=%s"%
+                                        prop['test2INIPropertyFile']['name']))
             
-        print("prop['test2INIPropertyFile']['useSSL']"
-              "=%s" % prop['test2INIPropertyFile']['useSSL'])
-        print("prop['test2INIPropertyFile']['attCertLifetime']=%s" % 
-              prop['test2INIPropertyFile']['attCertLifetime'])
+        print(("prop['test2INIPropertyFile']['useSSL']"
+              "=%s" % prop['test2INIPropertyFile']['useSSL']))
+        print(("prop['test2INIPropertyFile']['attCertLifetime']=%s" % 
+              prop['test2INIPropertyFile']['attCertLifetime']))
         
         assert(isinstance(prop['test2INIPropertyFile']['attCertLifetime'], 
                           float))
@@ -98,9 +98,9 @@ class ConfigFileParsersTestCase(unittest.TestCase):
         prop = readAndValidateProperties(self.configFilePath, validKeys,
                                sections=('test3ReadAndValidateProperties',),
                                prefix='sessionManager')
-        print "properties ..."
-        print prop
-        assert(prop.keys()==['test3ReadAndValidateProperties'])
+        print("properties ...")
+        print(prop)
+        assert(list(prop.keys())==['test3ReadAndValidateProperties'])
         
         assert(prop['test3ReadAndValidateProperties']['sslCertFile'])
         assert('credentialWallet' in prop['test3ReadAndValidateProperties'])

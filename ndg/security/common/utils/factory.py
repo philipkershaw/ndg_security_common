@@ -41,7 +41,7 @@ def importModuleObject(moduleName, objectName=None, objectType=None):
     else:
         _moduleName = moduleName
         
-    if isinstance(objectName, basestring):
+    if isinstance(objectName, str):
         objectName = [objectName]
     
     log.debug("Importing %r ..." % objectName) 
@@ -125,7 +125,7 @@ def callModuleObject(moduleName, objectName=None, moduleFilePath=None,
             if sysPathBak:
                 sys.path = sysPathBak
                             
-    except Exception, e:
+    except Exception as e:
         log.error('%r module import raised %r type exception: %r' % 
                   (moduleName, e.__class__, traceback.format_exc()))
         raise 
@@ -140,7 +140,7 @@ def callModuleObject(moduleName, objectName=None, moduleFilePath=None,
             
         return obj
 
-    except Exception, e:
+    except Exception as e:
         log.error("Instantiating module object, %r: %r" % 
                                                     (importedObject.__name__, 
                                                      traceback.format_exc()))

@@ -12,7 +12,7 @@ __revision__ = '$Id$'
 
 import re
 import os
-from ConfigParser import SafeConfigParser
+from configparser import SafeConfigParser
 
 
 def m2_get_dn_field(dn, field_name, field_sep=None, name_val_sep=None):
@@ -73,12 +73,12 @@ class X500DN(object):
         'domainComponent':          'DC',
         'userid':                   'UID'
     }
-    SLASH_PARSER_RE_STR = '/(%s)=' % '|'.join(SHORT_NAME_LUT.keys() + 
-                                              SHORT_NAME_LUT.values())    
+    SLASH_PARSER_RE_STR = '/(%s)=' % '|'.join(list(SHORT_NAME_LUT.keys()) + 
+                                              list(SHORT_NAME_LUT.values()))    
     SLASH_PARSER_RE = re.compile(SLASH_PARSER_RE_STR)
 
-    COMMA_PARSER_RE_STR = '[,]?\s*(%s)=' % '|'.join(SHORT_NAME_LUT.keys() + 
-                                                    SHORT_NAME_LUT.values())    
+    COMMA_PARSER_RE_STR = '[,]?\s*(%s)=' % '|'.join(list(SHORT_NAME_LUT.keys()) + 
+                                                    list(SHORT_NAME_LUT.values()))    
     COMMA_PARSER_RE = re.compile(COMMA_PARSER_RE_STR)
     
     def __init__(self, dn=None, separator=None):
@@ -94,12 +94,12 @@ class X500DN(object):
         """
         
         # Private key data
-        self.__dat = {}.fromkeys(self.__class__.SHORT_NAME_LUT.values())
+        self.__dat = {}.fromkeys(list(self.__class__.SHORT_NAME_LUT.values()))
         self.__separator = None
         
         # Check for separator from input
         if separator is not None:
-            if not isinstance(separator, basestring):
+            if not isinstance(separator, str):
                 raise X500DNError("dn Separator must be a valid string")
 
             separator_ = separator.lstrip()
@@ -140,7 +140,7 @@ class X500DN(object):
         if not isinstance(x500dn, X500DN):
             return False
 
-        return self.__dat.items() == x500dn.items()
+        return list(self.__dat.items()) == list(x500dn.items())
    
     def __ne__(self, x500dn):
         """Return true if the all the fields of the two DNs are equal"""
@@ -148,7 +148,7 @@ class X500DN(object):
         if not isinstance(x500dn, X500DN):
             return False
 
-        return self.__dat.items() != x500dn.items()
+        return list(self.__dat.items()) != list(x500dn.items())
   
     def __delitem__(self, key):
         """Prevent keys from being deleted."""
@@ -157,12 +157,12 @@ class X500DN(object):
     def __getitem__(self, key):
 
         # Check input key
-        if self.__dat.has_key(key):
+        if key in self.__dat:
 
             # key recognised
             return self.__dat[key]
         
-        elif X500DN.__shortNameLUT.has_key(key):
+        elif key in X500DN.__shortNameLUT:
 
             # key not recognised - but a long name version of the key may
             # have been passed
@@ -176,12 +176,12 @@ class X500DN(object):
     def __setitem__(self, key, item):
         
         # Check input key
-        if self.__dat.has_key(key):
+        if key in self.__dat:
 
             # key recognised
             self.__dat[key] = item
             
-        elif X500DN.__shortNameLUT.has_key(key):
+        elif key in X500DN.__shortNameLUT:
                 
             # key not recognised - but a long name version of the key may
             # have been passed
@@ -200,20 +200,20 @@ class X500DN(object):
         return copy.copy(self)
 
     def keys(self):
-        return self.__dat.keys()
+        return list(self.__dat.keys())
 
     def items(self):
-        return self.__dat.items()
+        return list(self.__dat.items())
 
     def values(self):
-        return self.__dat.values()
+        return list(self.__dat.values())
 
     def has_key(self, key):
-        return self.__dat.has_key(key)
+        return key in self.__dat
 
     # 'in' operator
     def __contains__(self, key):
-        return self.has_key(key)
+        return key in self
 
     def get(self, *arg):
         return self.__dat.get(*arg)
@@ -222,7 +222,7 @@ class X500DN(object):
         """Combine fields in Distinguished Name into a single string."""
         
         if separator:
-            if not isinstance(separator, basestring):
+            if not isinstance(separator, str):
                 raise X500DNError("Separator must be a valid string")            
         else:
             # Default to / if no separator is set
@@ -236,7 +236,7 @@ class X500DN(object):
             sDN = ''
      
         dnList = []
-        for (key, val) in self.__dat.items():
+        for (key, val) in list(self.__dat.items()):
             if val:
                 if isinstance(val, tuple):
                     dnList += [separator.join(["%s=%s" % (key, valSub) \
@@ -255,7 +255,7 @@ class X500DN(object):
         update the object's dictionary"""
         
         if separator:
-            if not isinstance(separator, basestring):
+            if not isinstance(separator, str):
                 raise X500DNError("Separator must be a valid string")
         else:
             separator = self.__separator
@@ -279,7 +279,7 @@ class X500DN(object):
             if len(dnFields) < 2:
                 raise X500DNError("Error parsing DN string: \"%s\"" % dn)
 
-            items = zip(dnFields[1::2], dnFields[2::2])
+            items = list(zip(dnFields[1::2], dnFields[2::2]))
             
             # Reset existing dictionary values
             self.__dat.fromkeys(self.__dat, '')
@@ -298,7 +298,7 @@ class X500DN(object):
                     parsedDN[key] = val
                 
             # Copy matching DN fields
-            for key, val in parsedDN.items():
+            for key, val in list(parsedDN.items()):
                 if (key not in self.__dat and 
                     key not in self.__class__.SHORT_NAME_LUT):
                     raise X500DNError('Invalid field "%s" in input DN string' %
@@ -306,7 +306,7 @@ class X500DN(object):
 
                 self.__dat[key] = val
 
-        except Exception, excep:
+        except Exception as excep:
             raise X500DNError("Error de-serialising DN \"%s\": %s" %
                               (dn, str(excep)))
 
@@ -334,7 +334,7 @@ class X500DN(object):
         # The resulting match should be a list.  The first character in each
         # element in the list should be the field separator and should be the
         # same
-        regExpr = '|'.join(['\W\s*'+i+'=' for i in self.__dat.keys()])
+        regExpr = '|'.join(['\W\s*'+i+'=' for i in list(self.__dat.keys())])
         match = re.findall(regExpr, dn)
             
         # In the first example above, the resulting match is:
@@ -429,18 +429,16 @@ class OpenSSLConfig(SafeConfigParser, object):
         @type filePath: string
         @param filePath: path for OpenSSL configuration file"""
         if filePath is not None:
-            if not isinstance(filePath, basestring):
-                raise OpenSSLConfigError, \
-                    "Input OpenSSL config file path must be a string"
+            if not isinstance(filePath, str):
+                raise OpenSSLConfigError("Input OpenSSL config file path must be a string")
 
             try:
                 if not os.access(filePath, os.R_OK):
-                    raise OpenSSLConfigError, "not found or no read access"
+                    raise OpenSSLConfigError("not found or no read access")
                                          
-            except Exception, e:
-                raise OpenSSLConfigError, \
-                    "OpenSSL config file path is not valid: \"%s\": %s" % \
-                    (filePath, str(e))
+            except Exception as e:
+                raise OpenSSLConfigError("OpenSSL config file path is not valid: \"%s\": %s" % \
+                    (filePath, str(e)))
                     
         self.__filePath = filePath
 
@@ -467,18 +465,16 @@ class OpenSSLConfig(SafeConfigParser, object):
             else:
                 self.__caDir = None
         else:
-            if not isinstance(caDir, basestring):
-                raise OpenSSLConfigError, \
-                    "Input OpenSSL CA directory path must be a string"
+            if not isinstance(caDir, str):
+                raise OpenSSLConfigError("Input OpenSSL CA directory path must be a string")
 
             try:
                 if not os.access(caDir, os.R_OK):
-                    raise OpenSSLConfigError, "not found or no read access"
+                    raise OpenSSLConfigError("not found or no read access")
                                          
-            except Exception, e:
-                raise OpenSSLConfigError, \
-                    "OpenSSL CA directory path is not valid: \"%s\": %s" % \
-                    (caDir, str(e))
+            except Exception as e:
+                raise OpenSSLConfigError("OpenSSL CA directory path is not valid: \"%s\": %s" % \
+                    (caDir, str(e)))
                     
         self.__caDir = caDir  
 
@@ -503,14 +499,13 @@ class OpenSSLConfig(SafeConfigParser, object):
         @type reqDN: dict
         @param reqDN: Distinguished Name for certificate request"""
         if not isinstance(reqDN, dict):
-            raise AttributeError, "Distinguished Name must be dict type"
+            raise AttributeError("Distinguished Name must be dict type")
         
         invalidKw = [k for k in dict \
                      if k not in self.__class__._certReqDNParamName]
         if invalidKw:
-            raise AttributeError, \
-    "Invalid certificate request keyword(s): %s.  Valid keywords are: %s" % \
-    (', '.join(invalidKw), ', '.join(self.__class__._certReqDNParamName))
+            raise AttributeError("Invalid certificate request keyword(s): %s.  Valid keywords are: %s" % \
+    (', '.join(invalidKw), ', '.join(self.__class__._certReqDNParamName)))
 
         self.__reqDN = reqDN
 
@@ -532,21 +527,20 @@ class OpenSSLConfig(SafeConfigParser, object):
         try:
             file_ = open(self.__filePath)
             fileTxt = file_.read()
-        except Exception, e:
-            raise OpenSSLConfigError, \
-                "Error reading OpenSSL config file \"%s\": %s" % \
-                                                    (self.__filePath, str(e))
+        except Exception as e:
+            raise OpenSSLConfigError("Error reading OpenSSL config file \"%s\": %s" % \
+                                                    (self.__filePath, str(e)))
 
         idx = re.search('\[\s*\w*\s*\]', fileTxt).span()[0]
         file_.seek(idx)
         SafeConfigParser.readfp(self, file_)
         
         # Filter section names and reomve comments from options
-        for section, val in self._sections.items():
+        for section, val in list(self._sections.items()):
             newSection = section
             self._sections[newSection.strip()] = \
                                     dict([(opt, self._filtOptVal(optVal))
-                                          for opt, optVal in val.items()])
+                                          for opt, optVal in list(val.items())])
             del self._sections[section]
        
         self._set_required_dn_params()
@@ -570,7 +564,7 @@ class OpenSSLConfig(SafeConfigParser, object):
         """Set to not implemented as using a file object could be problematic
         given read() has to seek ahead to the first actual section to avoid
         parsing errors"""
-        raise NotImplementedError, "Use read method instead"
+        raise NotImplementedError("Use read method instead")
         self._parseReqDN()
 
     def _set_required_dn_params(self):
@@ -586,7 +580,6 @@ class OpenSSLConfig(SafeConfigParser, object):
                 'OU': self.get('req_distinguished_name', 
                                '0.organizationalUnitName_default')
             }
-        except Exception, e:
-            raise OpenSSLConfigError, \
-            'Error setting content of Distinguished Name from file "%s": %s'%\
-                                                    (self.__filePath, str(e))
+        except Exception as e:
+            raise OpenSSLConfigError('Error setting content of Distinguished Name from file "%s": %s'%\
+                                                    (self.__filePath, str(e)))

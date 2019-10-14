@@ -9,7 +9,7 @@ __license__ = "BSD - see LICENSE file in top-level directory"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
 
-from ConfigParser import SafeConfigParser, InterpolationMissingOptionError, \
+from configparser import SafeConfigParser, InterpolationMissingOptionError, \
     NoOptionError
 
 # For parsing of properties file
@@ -23,7 +23,7 @@ import logging, os
 log = logging.getLogger(__name__)
 
 # lambda function to expand out any environment variables in properties read in
-expandEnvVars = lambda x: isinstance(x, basestring) and \
+expandEnvVars = lambda x: isinstance(x, str) and \
                     os.path.expandvars(x).strip() or x
 
 
@@ -270,18 +270,18 @@ def _parseConfig(cfg, validKeys, section='DEFAULT', prefix=''):
     propThisBranch = propRoot
     
     if section == 'DEFAULT':
-        keys = cfg.defaults().keys()
+        keys = list(cfg.defaults().keys())
     else:
         keys = cfg.options(section)
         # NB, we need to be careful here - since this will return the section
         # keywords AND the 'DEFAULT' section entries - so use the difference 
         # between the two
-        keys = filter(lambda x:x not in cfg.defaults().keys(), keys)
+        keys = [x for x in keys if x not in list(cfg.defaults().keys())]
 
     for key in keys:
         try:
             val = cfg.get(section, key)
-        except InterpolationMissingOptionError, e:
+        except InterpolationMissingOptionError as e:
             log.warning('Ignoring property "%s": %s' % (key, e))
             continue
         
@@ -328,7 +328,7 @@ def _parseConfig(cfg, validKeys, section='DEFAULT', prefix=''):
             val = _parseVal(cfg, section, key, validKeys, subKey=subKey)
             
             # check if key already exists; if so, append to list
-            if propThisBranch.has_key(subKey):
+            if subKey in propThisBranch:
                 propThisBranch[subKey] = __listify(
                                             propThisBranch[subKey]).extend(val)
             else:
@@ -365,7 +365,7 @@ def _parseVal(cfg, section, option, validKeys, subKey=None):
                 # consistency here
                 val = None
                 
-            elif isinstance(val, basestring):
+            elif isinstance(val, str):
                 # expand out any env vars
                 val = expandEnvVars(val)
                 
@@ -378,7 +378,7 @@ def _parseVal(cfg, section, option, validKeys, subKey=None):
             return val
         except ValueError:
             continue
-        except Exception, e:
+        except Exception as e:
             log.error('Error parsing option "%s" in section "%s": %s' %
                       (section, key, e))
             raise
@@ -406,7 +406,7 @@ def readXMLPropertyFile(propFilePath, validKeys, rootElem=None):
         try:
             tree = ElementTree.parse(propFilePath)
             
-        except IOError, ioErr:
+        except IOError as ioErr:
             raise ValueError("Error parsing properties file \"%s\": %s" % 
                              (ioErr.filename, ioErr.strerror))
     
@@ -448,12 +448,12 @@ def readXMLPropertyFile(propFilePath, validKeys, rootElem=None):
                 val = readXMLPropertyFile(propFilePath,validKeys,rootElem=elem)
 
             # check if key already exists; if so, append to list
-            if properties.has_key(key):
+            if key in properties:
                 properties[key] = __listify(properties[key]).extend(val)
             else:
                 properties[key] = val
             
-    except Exception, e:
+    except Exception as e:
         raise ValueError('Error parsing tag "%s" in properties file "%s": %s' %
                          (elem.tag, propFilePath, e))
 
@@ -514,7 +514,7 @@ def _expandEnvironmentVariables(properties):
     @return: dict with expanded values
     '''
     log.debug("Expanding out environment variables in properties dictionary")
-    for key, val in properties.items():
+    for key, val in list(properties.items()):
         # only check strings or lists of strings
         if isinstance(val, list):            
             properties[key] = [_expandEnvironmentVariable(key, item) \

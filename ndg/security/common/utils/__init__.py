@@ -8,8 +8,8 @@ __copyright__ = ""
 __license__ = "BSD - see LICENSE file in top-level directory"
 __contact__ = "Philip.Kershaw@stfc.ac.uk"
 __revision__ = '$Id$'
-import UserDict
-from urlparse import urlparse, urlunparse, urljoin, ParseResult
+from collections import UserDict, MutableMapping
+from urllib.parse import urlparse, urlunparse, urljoin, ParseResult
 
 # Interpret a string as a boolean
 str2Bool = lambda str_: str_.lower() in ("yes", "true", "t", "1")
@@ -91,7 +91,7 @@ class RestrictedKeyNamesDict(dict):
         initialisation
         """
         super(RestrictedKeyNamesDict, self).__init__(*arg, **kw)
-        self.__keyNames = self.keys() 
+        self.__keyNames = list(self.keys()) 
           
     def __setitem__(self, key, val):
         if key not in self.__keyNames:
@@ -111,7 +111,7 @@ class RestrictedKeyNamesDict(dict):
         dict.update(self, d, **kw)
         
   
-class VettedDict(UserDict.DictMixin):
+class VettedDict(MutableMapping):
     """Enforce custom checking on keys and items before addition to a 
     dictionary
     """
@@ -201,16 +201,25 @@ class VettedDict(UserDict.DictMixin):
         return repr(self.__map)
     
     def keys(self):
-        return self.__map.keys()
+        return list(self.__map.keys())
     
     def items(self):
-        return self.__map.items()
+        return list(self.__map.items())
     
     def values(self):
-        return self.__map.values()
+        return list(self.__map.values())
     
     def __contains__(self, val):
         return self.__map.__contains__(val)
+    
+    def __delitem__(self, item):
+        del self.__map[item]
+    
+    def __iter__(self, val):
+        yield from self.__map
+    
+    def __len__(self):
+        return len(self.__map)
     
 
 
@@ -228,7 +237,7 @@ class FakeUrllib2HTTPRequest(object):
         @param headers: HTTP header fields 
         @type headers: dict
         '''
-        if isinstance(uri, basestring):
+        if isinstance(uri, str):
             self._parsed_uri = urlparse(uri)
             
         elif isinstance(uri, ParseResult):
@@ -238,7 +247,7 @@ class FakeUrllib2HTTPRequest(object):
                             'uri; got %r' % type(uri))
         
         self._headers = {}
-        for key, value in headers.items():
+        for key, value in list(headers.items()):
             self.add_header(key, value)
 
     def has_header(self, name):

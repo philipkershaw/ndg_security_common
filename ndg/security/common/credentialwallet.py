@@ -14,12 +14,11 @@ log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 import os
-import warnings
 
 # Check Attribute Certificate validity times
 from datetime import datetime, timedelta
 
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 
 try:
     from abc import ABCMeta, abstractmethod
@@ -60,7 +59,6 @@ class CredentialContainer(object):
         CREDENTIAL_TYPE_ATTRNAME
     )
     __slots__ = tuple(["__%s" % n for n in __ATTRIBUTE_NAMES])
-    del n
     
     def __init__(self, _type=None):
         self.__type = None
@@ -136,17 +134,16 @@ class CredentialContainer(object):
     def __setstate__(self, attrDict):
         '''Enable pickling for use with beaker.session'''
         try:
-            for attr, val in attrDict.items():
+            for attr, val in list(attrDict.items()):
                 setattr(self, attr, val)
-        except Exception, e:
+        except Exception as e:
             pass
        
 
-class CredentialWalletBase(object):
+class CredentialWalletBase(object, metaclass=ABCMeta):
     """Abstract base class for Credential Wallet implementations
     """ 
     CONFIG_FILE_OPTNAMES = ("userId", )
-    __metaclass__ = ABCMeta
     __slots__ = ("__userId", )
     
     def __init__(self):
@@ -218,7 +215,7 @@ class CredentialWalletBase(object):
         return self.__userId
 
     def _setUserId(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError('Expecting string type for "userId"; got %r '
                             'instead' % type(value))
         self.__userId = value
@@ -241,7 +238,7 @@ class CredentialWalletBase(object):
   
     def __setstate__(self, attrDict):
         '''Enable pickling for use with beaker.session'''
-        for attrName, val in attrDict.items():
+        for attrName, val in list(attrDict.items()):
             setattr(self, attrName, val)
 
 
@@ -261,10 +258,10 @@ class SAMLAssertionWallet(CredentialWalletBase):
         return self.__clockSkewTolerance
 
     def _setClockSkewTolerance(self, value):
-        if isinstance(value, (float, int, long)):
+        if isinstance(value, (float, int)):
             self.__clockSkewTolerance = timedelta(seconds=value)
             
-        elif isinstance(value, basestring):
+        elif isinstance(value, str):
             self.__clockSkewTolerance = timedelta(seconds=float(value))
             
         elif isinstance(value, timedelta):
@@ -292,7 +289,7 @@ class SAMLAssertionWallet(CredentialWalletBase):
         @param section: configuration file section from which to extract
         parameters.
         '''  
-        if isinstance(cfg, basestring):
+        if isinstance(cfg, str):
             cfgFilePath = os.path.expandvars(cfg)
             _cfg = CaseSensitiveConfigParser()
             _cfg.read(cfgFilePath)
@@ -349,7 +346,7 @@ class SAMLAssertionWallet(CredentialWalletBase):
 
         log.debug("SAMLAssertionWallet.audit ...")
         
-        for k, v in self.__assertionsMap.items():
+        for k, v in list(self.__assertionsMap.items()):
             creds = [credential for credential in v
                      if self.isValidCredential(credential)]
             if len(creds) > 0:
@@ -405,12 +402,11 @@ class CredentialRepositoryError(_CredentialWalletException):
     """Exception handling for NDG Credential Repository class."""
 
 
-class CredentialRepository(object):
+class CredentialRepository(object, metaclass=ABCMeta):
     """CredentialWallet's abstract interface class to a Credential Repository. 
     The Credential Repository is abstract store of user currently valid user
     credentials.  It enables retrieval of attribute certificates from a user's
     previous session(s)"""
-    __metaclass__ = ABCMeta
     
     @abstractmethod
     def __init__(self, propFilePath=None, dbPPhrase=None, **prop):

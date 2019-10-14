@@ -16,8 +16,8 @@ import unittest
 import os
 
 from string import Template
-from cStringIO import StringIO
-import cPickle as pickle
+from io import StringIO
+import pickle as pickle
 
 from xml.etree import ElementTree
 
@@ -101,27 +101,27 @@ class SAMLAttributeWalletTestCase(CredentialWalletBaseTestCase):
     def test01AddCredentials(self):
         wallet = self._addCredentials()
         k = self.__class__.SITEA_ATTRIBUTEAUTHORITY_URI
-        self.assert_(len(wallet.retrieveCredentials(k)) == 1)
+        self.assertTrue(len(wallet.retrieveCredentials(k)) == 1)
         assertions = wallet.retrieveCredentials(
                             self.__class__.SITEA_ATTRIBUTEAUTHORITY_URI)
-        self.assert_(assertions)
+        self.assertTrue(assertions)
         
-        print("SAML Assertion:\n%s" % 
-              prettyPrint(AssertionElementTree.toXML(assertions[0])))
+        print(("SAML Assertion:\n%s" % 
+              prettyPrint(AssertionElementTree.toXML(assertions[0]))))
     
     def test02VerifyCredential(self):
         wallet = SAMLAssertionWallet()
-        self.assert_(wallet.isValidCredential(self.assertion))
+        self.assertTrue(wallet.isValidCredential(self.assertion))
         
         expiredAssertion = self._createAssertion(
                                 timeNow=datetime.utcnow() - timedelta(hours=24))
                                 
-        self.assert_(not wallet.isValidCredential(expiredAssertion))
+        self.assertTrue(not wallet.isValidCredential(expiredAssertion))
         
         futureAssertion = self._createAssertion(
                                 timeNow=datetime.utcnow() + timedelta(hours=24))
 
-        self.assert_(not wallet.isValidCredential(futureAssertion))
+        self.assertTrue(not wallet.isValidCredential(futureAssertion))
         
     def test03AuditCredentials(self):
         # Add a short lived credential and ensure it's removed when an audit
@@ -130,10 +130,10 @@ class SAMLAttributeWalletTestCase(CredentialWalletBaseTestCase):
         wallet = SAMLAssertionWallet()
         wallet.addCredentials('a', [shortExpiryAssertion])
         
-        self.assert_(wallet.retrieveCredentials('a'))
+        self.assertTrue(wallet.retrieveCredentials('a'))
         sleep(2)
         wallet.audit()
-        self.assert_(wallet.retrieveCredentials('a') is None)
+        self.assertTrue(wallet.retrieveCredentials('a') is None)
 
     def test04ClockSkewTolerance(self):
         # Add a short lived credential but with the wallet set to allow for
@@ -145,23 +145,23 @@ class SAMLAttributeWalletTestCase(CredentialWalletBaseTestCase):
         wallet.clockSkewTolerance = 5.*60*60
         wallet.addCredentials('a', [shortExpiryAssertion])
         
-        self.assert_(wallet.retrieveCredentials('a'))
+        self.assertTrue(wallet.retrieveCredentials('a'))
         sleep(2)
         wallet.audit()
-        self.assert_(wallet.retrieveCredentials('a'))
+        self.assertTrue(wallet.retrieveCredentials('a'))
         
     def test05ReplaceCredential(self):
         # Replace an existing credential from a given institution with a more
         # up to date one
         k = self.__class__.SITEA_ATTRIBUTEAUTHORITY_URI
         wallet = self._addCredentials()
-        self.assert_(len(wallet.retrieveCredentials(k)) == 1)
+        self.assertTrue(len(wallet.retrieveCredentials(k)) == 1)
         
         newAssertion = self._createAssertion()  
 
         wallet.addCredentials(k, [newAssertion])
-        self.assert_(len(wallet.retrieveCredentials(k)) == 1)
-        self.assert_(newAssertion.conditions.notOnOrAfter == \
+        self.assertTrue(len(wallet.retrieveCredentials(k)) == 1)
+        self.assertTrue(newAssertion.conditions.notOnOrAfter == \
                      wallet.retrieveCredentials(k)[0].conditions.notOnOrAfter)
         
     def test06CredentialsFromSeparateKeys(self):
@@ -169,9 +169,9 @@ class SAMLAttributeWalletTestCase(CredentialWalletBaseTestCase):
         wallet.addCredentials("MySite",
                               [self._createAssertion(issuerName="MySite"),
                                self._createAssertion()])
-        self.assert_(len(wallet.retrieveCredentials("MySite")) == 2)
+        self.assertTrue(len(wallet.retrieveCredentials("MySite")) == 2)
         k = self.__class__.SITEA_ATTRIBUTEAUTHORITY_URI
-        self.assert_(len(wallet.retrieveCredentials(k)) == 1)
+        self.assertTrue(len(wallet.retrieveCredentials(k)) == 1)
 
     def test07Pickle(self):
         wallet = self._addCredentials()
@@ -184,16 +184,16 @@ class SAMLAttributeWalletTestCase(CredentialWalletBaseTestCase):
         
         assertions = unpickledWallet.retrieveCredentials(
             self.__class__.SITEA_ATTRIBUTEAUTHORITY_URI)
-        self.assert_(assertions)
+        self.assertTrue(assertions)
         
-        self.assert_(assertions[0].issuer.value == \
+        self.assertTrue(assertions[0].issuer.value == \
                      self.__class__.SITEA_SAML_ISSUER_NAME)
 
     def test08CreateFromConfig(self):
         wallet = SAMLAssertionWallet.fromConfig(
                                 self.__class__.CONFIG_FILEPATH)
-        self.assert_(wallet.clockSkewTolerance == timedelta(seconds=0.01))
-        self.assert_(wallet.userId == 'https://openid.localhost/philip.kershaw')
+        self.assertTrue(wallet.clockSkewTolerance == timedelta(seconds=0.01))
+        self.assertTrue(wallet.userId == 'https://openid.localhost/philip.kershaw')
         
 
 class SAMLAuthzDecisionWalletTestCase(CredentialWalletBaseTestCase):
@@ -249,27 +249,27 @@ class SAMLAuthzDecisionWalletTestCase(CredentialWalletBaseTestCase):
     def test01AddCredentials(self):
         wallet = self._addCredentials()
         
-        self.assert_(
+        self.assertTrue(
             len(wallet.retrieveCredentials(self.__class__.RESOURCE_ID)) == 1)
 
         assertion = wallet.retrieveCredentials(self.__class__.RESOURCE_ID)[-1]
         
-        print("SAML Assertion:\n%s" % 
-              prettyPrint(AssertionElementTree.toXML(assertion)))
+        print(("SAML Assertion:\n%s" % 
+              prettyPrint(AssertionElementTree.toXML(assertion))))
     
     def test02VerifyCredential(self):
         wallet = SAMLAssertionWallet()
-        self.assert_(wallet.isValidCredential(self.assertion))
+        self.assertTrue(wallet.isValidCredential(self.assertion))
         
         expiredAssertion = self._createAssertion(
                                 timeNow=datetime.utcnow() - timedelta(hours=24))
                                 
-        self.assert_(not wallet.isValidCredential(expiredAssertion))
+        self.assertTrue(not wallet.isValidCredential(expiredAssertion))
         
         futureAssertion = self._createAssertion(
                                 timeNow=datetime.utcnow() + timedelta(hours=24))
 
-        self.assert_(not wallet.isValidCredential(futureAssertion))
+        self.assertTrue(not wallet.isValidCredential(futureAssertion))
 
     def test06Pickle(self):
         wallet = self._addCredentials()
@@ -279,14 +279,14 @@ class SAMLAuthzDecisionWalletTestCase(CredentialWalletBaseTestCase):
         
         inFile = open(self.__class__.PICKLE_FILEPATH)
         unpickledWallet = pickle.load(inFile)
-        self.assert_(unpickledWallet.retrieveCredentials(
+        self.assertTrue(unpickledWallet.retrieveCredentials(
                                                     self.__class__.RESOURCE_ID))
         
     def test07CreateFromConfig(self):
         wallet = SAMLAssertionWallet.fromConfig(
                                 self.__class__.CONFIG_FILEPATH)
-        self.assert_(wallet.clockSkewTolerance == timedelta(seconds=0.01))
-        self.assert_(wallet.userId == 'https://openid.localhost/philip.kershaw')
+        self.assertTrue(wallet.clockSkewTolerance == timedelta(seconds=0.01))
+        self.assertTrue(wallet.userId == 'https://openid.localhost/philip.kershaw')
 
 
 if __name__ == "__main__":

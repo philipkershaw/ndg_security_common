@@ -46,9 +46,8 @@ class  _MetaESGFSamlNamespaces(type):
         return "urn:esg:openid"
 
  
-class ESGFSamlNamespaces(object):
+class ESGFSamlNamespaces(object, metaclass=_MetaESGFSamlNamespaces):
     """Earth System Grid specific constants for use with SAML assertions"""
-    __metaclass__ = _MetaESGFSamlNamespaces
     
     
 class ESGFGroupRoleAttributeValue(AttributeValue): 
@@ -86,27 +85,27 @@ class ESGFGroupRoleAttributeValue(AttributeValue):
         return self.__namespaceURI
 
     def _setNamespaceURI(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError("Expecting %r type for namespaceURI got %r" %
-                            (basestring, value.__class__))
+                            (str, value.__class__))
         self.__namespaceURI = value
 
     def _getElementLocalName(self):
         return self.__elementLocalName
 
     def _setElementLocalName(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError("Expecting %r type for elementLocalName got %r" %
-                            (basestring, value.__class__))
+                            (str, value.__class__))
         self.__elementLocalName = value
 
     def _getNamespacePrefix(self):
         return self.__namespacePrefix
 
     def _setNamespacePrefix(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             raise TypeError("Expecting %r type for namespacePrefix got %r" %
-                            (basestring, value.__class__))
+                            (str, value.__class__))
         self.__namespacePrefix = value
 
     namespaceURI = property(fget=_getNamespaceURI, 
@@ -126,7 +125,7 @@ class ESGFGroupRoleAttributeValue(AttributeValue):
         return self.__group
      
     def _setGroup(self, group): 
-        if not isinstance(group, basestring):
+        if not isinstance(group, str):
             raise TypeError('Expecting a string type for "group" attribute; '
                             'got %r' % type(group))
         self.__group = group
@@ -137,7 +136,7 @@ class ESGFGroupRoleAttributeValue(AttributeValue):
         return self.__role
      
     def _setRole(self, role):
-        if not isinstance(role, basestring):
+        if not isinstance(role, str):
             raise TypeError('Expecting a string type for "role" attribute; '
                             'got %r' % type(role))           
         self.__role = role
