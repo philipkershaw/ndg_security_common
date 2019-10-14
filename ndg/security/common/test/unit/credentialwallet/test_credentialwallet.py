@@ -175,12 +175,11 @@ class SAMLAttributeWalletTestCase(CredentialWalletBaseTestCase):
 
     def test07Pickle(self):
         wallet = self._addCredentials()
-        outFile = open(self.__class__.PICKLE_FILEPATH, 'w')
-        pickle.dump(wallet, outFile)
-        outFile.close()
+        with open(self.__class__.PICKLE_FILEPATH, 'wb') as out_file:
+            pickle.dump(wallet, out_file)
         
-        inFile = open(self.__class__.PICKLE_FILEPATH)
-        unpickledWallet = pickle.load(inFile)
+        with open(self.__class__.PICKLE_FILEPATH, 'rb') as in_file:
+            unpickledWallet = pickle.load(in_file)
         
         assertions = unpickledWallet.retrieveCredentials(
             self.__class__.SITEA_ATTRIBUTEAUTHORITY_URI)
@@ -273,12 +272,12 @@ class SAMLAuthzDecisionWalletTestCase(CredentialWalletBaseTestCase):
 
     def test06Pickle(self):
         wallet = self._addCredentials()
-        outFile = open(self.__class__.PICKLE_FILEPATH, 'w')
-        pickle.dump(wallet, outFile)
-        outFile.close()
+        with open(self.__class__.PICKLE_FILEPATH, 'wb') as out_file:
+            pickle.dump(wallet, out_file)
         
-        inFile = open(self.__class__.PICKLE_FILEPATH)
-        unpickledWallet = pickle.load(inFile)
+        with open(self.__class__.PICKLE_FILEPATH, 'rb') as in_file:
+            unpickledWallet = pickle.load(in_file)
+
         self.assertTrue(unpickledWallet.retrieveCredentials(
                                                     self.__class__.RESOURCE_ID))
         

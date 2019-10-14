@@ -67,8 +67,8 @@ class BaseTestCase(unittest.TestCase):
     DB_FILEPATH = join(NDGSEC_TEST_CONFIG_DIR, DB_FILENAME)
     DB_CONNECTION_STR = 'sqlite:///%s' % DB_FILEPATH
     
-    USERNAME = 'pjk'
-    PASSWORD = 'testpassword'
+    USERNAME = b'pjk'
+    PASSWORD = b'testpassword'
     MD5_PASSWORD = md5(PASSWORD).hexdigest()
     
     OPENID_URI_STEM = 'https://localhost:7443/openid/'
@@ -80,8 +80,8 @@ class BaseTestCase(unittest.TestCase):
     EMAILADDRESS = 'pjk@somewhere.ac.uk'
     
     # Add a second test user
-    USERNAME2 = 'another'
-    PASSWORD2 = 'testpassword'
+    USERNAME2 = b'another'
+    PASSWORD2 = b'testpassword'
     MD5_PASSWORD2 = md5(PASSWORD).hexdigest()
     
     OPENID_IDENTIFIER2 = 'a.n.other'

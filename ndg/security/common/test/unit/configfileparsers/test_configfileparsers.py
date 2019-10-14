@@ -15,7 +15,7 @@ import os
 
 from ndg.security.common.utils.configfileparsers import \
     CaseSensitiveConfigParser, INIPropertyFile, readAndValidateProperties
-from configparser import SafeConfigParser
+from configparser import SafeConfigParser, NoOptionError
 
 from os.path import join as jnPath
 mkPath=lambda file_: jnPath(os.environ['NDGSEC_CONFIGFILEPARSERS_UNITTEST_DIR'],
@@ -51,10 +51,11 @@ class ConfigFileParsersTestCase(unittest.TestCase):
         cfg.read(self.configFilePath)
         cfgVal = cfg.getboolean('test1CaseSensitiveConfigParser', 
                                 'CaseSensitiveOption')
-        caseSensitiveVal=caseSensitiveCfg.getboolean(
-                                            'test1CaseSensitiveConfigParser', 
-                                            'CaseSensitiveOption')
-        assert(caseSensitiveVal != cfgVal)
+
+        self.assertRaises(NoOptionError,
+                          caseSensitiveCfg.getboolean,
+                          'test1CaseSensitiveConfigParser',
+                          'CaseSensitiveOption')
         
     def test2INIPropertyFile(self):
         cfgFile = INIPropertyFile()
